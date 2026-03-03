@@ -1,0 +1,55 @@
+name: Lint and Format
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "**.R"
+      - "**.qmd"
+      - ".lintr"
+
+permissions:
+  contents: write
+
+jobs:
+  style:
+    name: Format with styler
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Set up R and dependencies
+        uses: r-lib/actions/setup-r-dependencies@v1
+        with:
+          extra-packages: styler
+
+      - name: Run styler
+        run: Rscript -e 'styler::style_dir(".")'
+
+      - name: Commit formatting changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: auto-format code with styler"
+
+  lint:
+    name: Lint with lintr
+    runs-on: ubuntu-latest
+    needs: style
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Set up R and dependencies
+        uses: r-lib/actions/setup-r-dependencies@v1
+        with:
+          extra-packages: lintr
+
+      - name: Run lintr
+        run: Rscript -e 'lintr::lint_dir(".")'
+        env:
+          LINTR_ERROR_ON_LINT: true
