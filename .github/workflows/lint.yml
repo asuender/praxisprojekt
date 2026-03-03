@@ -27,7 +27,7 @@ jobs:
           use-public-rspm: true
 
       - name: Install styler
-        run: install.packages("styler")
+        run: install.packages(c("knitr", "styler"))
         shell: Rscript {0}
 
       - name: Style root directory
