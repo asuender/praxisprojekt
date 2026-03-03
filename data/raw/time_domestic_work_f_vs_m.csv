@@ -1,0 +1,133 @@
+Entity,Code,Year,Women (% of 24 hour day),Men (% of 24 hour day),Population,World region according to OWID
+Argentina,ARG,2005,16.74,6.11,39216786,South America
+Argentina,ARG,2010,17.5,6.6,41288694,South America
+Armenia,ARM,2004,24.03,4.58,3022544,Asia
+Armenia,ARM,2008,21.66,4.37,2959996,Asia
+Australia,AUS,2006,20.83,11.39,20590566,Oceania
+Australia,AUS,2021,17.12,11.18,25956417,Oceania
+Austria,AUT,2009,19.07,10.05,8345073,Europe
+Austria,AUT,2022,15.79,8.63,9064678,Europe
+Azerbaijan,AZE,2008,25.42,8.89,8942637,Asia
+Belgium,BEL,2014,16.41,10.34,11210113,Europe
+Bhutan,BTN,2015,15,5.9,740623,Asia
+Bolivia,BOL,2001,23.12,12.13,8752740,South America
+Brazil,BRA,2012,13.18,3.03,196876113,South America
+Brazil,BRA,2016,11.54,4.95,203218108,South America
+Brazil,BRA,2017,11.75,5.17,204703440,South America
+Brazil,BRA,2018,12.06,5.31,206107265,South America
+Brazil,BRA,2019,12.08,5.36,207455459,South America
+Brazil,BRA,2022,11.78,5.69,210306411,South America
+Bulgaria,BGR,2023,18.2,8.9,6795805,Europe
+Cameroon,CMR,2014,15.82,4.57,22059894,Africa
+Canada,CAN,2005,15.83,10,32440172,North America
+Canada,CAN,2010,16.25,10.42,34196900,North America
+Canada,CAN,2016,14.17,10,36353345,North America
+Canada,CAN,2023,16.46,11.62,39299098,North America
+China,CHN,2008,16.18,6.18,1333821011,Asia
+China,CHN,2018,15.35,5.9,1419008954,Asia
+Colombia,COL,2013,17.54,4.54,46151583,South America
+Colombia,COL,2017,16.87,4.59,48131076,South America
+Colombia,COL,2021,17.64,5.24,51188174,South America
+Costa Rica,CRI,2017,22.15,8.38,4913177,North America
+Cuba,CUB,2001,16.32,5.35,11144134,North America
+Cuba,CUB,2016,21,12.47,11265615,North America
+Dominican Republic,DOM,2016,16.71,3.79,10551430,North America
+Dominican Republic,DOM,2021,14.49,5.9,11123480,North America
+Ecuador,ECU,2012,19.75,4.72,15572195,South America
+El Salvador,SLV,2010,22.75,7.85,6068253,North America
+El Salvador,SLV,2017,20.21,7.03,6213538,North America
+Fiji,FJI,2016,15.16,5.19,919167,Oceania
+Finland,FIN,2000,15.82,10.02,5176197,Europe
+Finland,FIN,2010,15.2,10.49,5363347,Europe
+Finland,FIN,2021,14.06,10.75,5541069,Europe
+France,FRA,2010,15.77,9.49,63417366,Europe
+Georgia,GEO,2021,17.79,3.71,3788450,Asia
+Germany,DEU,2013,15.71,9.92,81041581,Europe
+Germany,DEU,2022,15.71,10.54,84086227,Europe
+Greece,GRC,2014,18.12,7.01,10893169,Europe
+Guatemala,GTM,2014,17.77,2.36,15681725,North America
+Guatemala,GTM,2017,19.48,2.61,16567363,North America
+Honduras,HND,2009,17.3,4.31,8189904,North America
+Hong Kong,HKG,2002,13.75,4.58,6821412,Asia
+Hong Kong,HKG,2013,10.83,3.33,7264330,Asia
+Hungary,HUN,2000,19.51,11.04,10190598,Europe
+Hungary,HUN,2010,17.28,7.98,9979128,Europe
+India,IND,2024,22.36,2.92,1438069597,Asia
+Italy,ITA,2003,21.38,6.58,57739697,Europe
+Italy,ITA,2009,20.5,6.75,59904016,Europe
+Italy,ITA,2014,19.96,7.5,60664169,Europe
+Japan,JPN,2001,15.62,2.29,127260144,Asia
+Japan,JPN,2006,15.56,2.71,127997247,Asia
+Japan,JPN,2011,15.62,2.99,128096430,Asia
+Japan,JPN,2016,15.14,3.12,127159950,Asia
+Japan,JPN,2021,14.71,3.75,125679342,Asia
+Kazakhstan,KAZ,2018,18.96,6.25,18932725,Asia
+Kenya,KEN,2021,18.7,3.61,53219167,Africa
+Laos,LAO,2017,13.6,10.06,7018150,Asia
+Lesotho,LSO,2003,15.56,6.18,1985060,Africa
+Liberia,LBR,2010,6.29,2.58,4058897,Africa
+Malawi,MWI,2005,8.68,1.25,12840034,Africa
+Mexico,MEX,2009,31.04,10.38,111999720,North America
+Mexico,MEX,2014,23.73,7.59,119784265,North America
+Mexico,MEX,2019,24.21,8.82,125762978,North America
+Moldova,MDA,2012,20.14,11.27,3482629,Europe
+Mongolia,MNG,2019,19.29,7.6,3232118,Asia
+Mongolia,MNG,2023,19.06,9.19,3431938,Asia
+Morocco,MAR,2012,20.83,3.02,33355246,Africa
+Norway,NOR,2011,15.31,12.33,4952969,Europe
+Norway,NOR,2023,14.5,11.5,5519167,Europe
+Oman,OMN,2000,20.56,7.36,2282139,Asia
+Oman,OMN,2008,18.89,7.5,2626536,Asia
+Palestine,PSE,2000,23.12,3.19,3151800,Asia
+Palestine,PSE,2013,20.14,2.99,4315263,Asia
+Panama,PAN,2011,17.95,7.57,3693509,North America
+Paraguay,PRY,2016,18.77,7.69,6249129,South America
+Peru,PER,2010,23.56,8.95,29086021,South America
+Poland,POL,2013,18.26,9.93,38259267,Europe
+Poland,POL,2023,19.51,12.01,38762847,Europe
+Portugal,PRT,2015,17.81,10.24,10370264,Europe
+Qatar,QAT,2013,8.19,2.22,2032650,Asia
+Reunion,REU,2010,16.11,10,844480,Africa
+Serbia,SRB,2011,20.24,9.49,7364858,Europe
+Serbia,SRB,2015,19.17,8.69,7177257,Europe
+Serbia,SRB,2022,16.97,7.33,6791215,Europe
+South Korea,KOR,2014,14.58,3.61,50539055,Asia
+South Korea,KOR,2019,12.85,3.82,51767844,Asia
+Sweden,SWE,2011,16.04,12.83,9449263,Europe
+Switzerland,CHE,2000,18.12,9.84,7184003,Europe
+Switzerland,CHE,2004,18.1,10.33,7384196,Europe
+Switzerland,CHE,2007,17.92,10.91,7545386,Europe
+Switzerland,CHE,2010,16.74,9.77,7825750,Europe
+Switzerland,CHE,2013,16.54,10.39,8091199,Europe
+Switzerland,CHE,2016,16.83,10.8,8374903,Europe
+Switzerland,CHE,2020,17.31,11.47,8640582,Europe
+Tanzania,TZA,2006,17.08,4.58,40294900,Africa
+Tunisia,TUN,2006,21.94,2.71,10346408,Africa
+Turkey,TUR,2006,22,3.55,70045351,Asia
+Turkey,TUR,2015,19.15,3.71,80014222,Asia
+Uganda,UGA,2018,14.58,7.5,41565839,Africa
+United Kingdom,GBR,2001,14.83,8.15,59288095,Europe
+United Kingdom,GBR,2015,12.65,6.97,65382107,Europe
+United Kingdom,GBR,2022,16.01,12.25,68179315,Europe
+United States,USA,2003,16.54,9.88,289908091,North America
+United States,USA,2004,16.62,9.79,292786248,North America
+United States,USA,2005,16.5,9.67,295716666,North America
+United States,USA,2006,16.25,9.58,298730208,North America
+United States,USA,2007,16.08,9.96,301844223,North America
+United States,USA,2008,15.62,9.42,304970325,North America
+United States,USA,2009,15.92,9.75,308023452,North America
+United States,USA,2010,15.29,9.88,311062785,North America
+United States,USA,2011,15.21,9.67,314105075,North America
+United States,USA,2012,15.29,9.33,317115349,North America
+United States,USA,2013,15.58,9.71,320110752,North America
+United States,USA,2014,15.54,9.71,323115377,North America
+United States,USA,2015,15.88,9.75,326126496,North America
+United States,USA,2016,15.92,9.79,329179423,North America
+United States,USA,2017,15.42,9.88,332204657,North America
+United States,USA,2018,15.38,9.54,335056492,North America
+United States,USA,2019,15.33,9.67,337790069,North America
+United States,USA,2021,15.54,10.12,340161438,North America
+United States,USA,2022,15.08,10.08,341534041,North America
+United States,USA,2023,15.42,10.08,343477330,North America
+Uruguay,URY,2007,25.21,9.72,3295155,South America
+Uruguay,URY,2013,19.87,8.38,3345335,South America
