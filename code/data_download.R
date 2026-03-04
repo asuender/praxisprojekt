@@ -23,6 +23,3 @@ download_data <- function() {
   invisible(NULL)
 }
 
-
-download_data()
-
