@@ -1,3 +1,7 @@
+library(tidyverse)
+library(here)
+
+source("settings.R")
 lapply(
   list.files("code",
     pattern = "\\.R$",
@@ -7,4 +11,3 @@ lapply(
   ),
   source
 )
-source("settings.R")
