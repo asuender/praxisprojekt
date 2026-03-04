@@ -47,3 +47,18 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Data files (downloaded via scripts, see CONTRIBUTING.md)
+data/raw/*
+data/intermediate/*
+!data/raw/.gitkeep
+!data/intermediate/.gitkeep
+
+# Generated plots
+plots/*
+!plots/.gitkeep
+
+# Quarto rendered output
+*.html
+*.pdf
+*_files/
