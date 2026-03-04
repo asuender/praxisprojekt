@@ -22,3 +22,5 @@ format:
 # Fragestellungen
 
 # Zusammenfassung und Diskussion
+
+# Danke fürs Zuhören
