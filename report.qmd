@@ -1,0 +1,14 @@
+---
+title: "Executive Summary zur Gender Inequality"
+subtitle: "Statistisches Praktikum (LMU München)"
+author: "Jinwook Bae, Miriam Haf, Xuchen Shen, Andreas Sünder"
+date: today
+date-format: "D. MMMM YYYY"
+lang: de
+format:
+  pdf:
+    papersize: a4
+    geometry:
+      - margin=2.5cm
+---
+

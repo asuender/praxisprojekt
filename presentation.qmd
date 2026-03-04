@@ -1,0 +1,24 @@
+---
+title: "Gender Inequality"
+subtitle: "Statistisches Praktikum (LMU München)"
+author: "Jinwook Bae, Miriam Haf, Xuchen Shen, Andreas Sünder"
+date: today
+date-format: "D. MMMM YYYY"
+lang: de
+format:
+  revealjs:
+    theme: default
+    slide-number: true
+    logo: assets/logo.svg
+    css: presentation.css
+---
+
+# Einführung
+
+# Terminologie
+
+# Datenanalyse
+
+# Fragestellungen
+
+# Zusammenfassung und Diskussion

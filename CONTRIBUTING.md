@@ -11,6 +11,8 @@ First and foremost: let's make the process of working on this project as transpa
 
 Please **do not push any data files** (i.e. any files residing inside the `data/` directory) to GitHub! When working locally, you are free to keep them on your machine. Nevertheless, they are usually quite heavy in size to be tracked by Git. We will have scripts that download them automatically anyway.
 
+Let's keep [`report.qmd`](./report.qmd) and [`presentation.qmd`](./presentation.qmd) as clean as possible. Feel free to add any files for local experimentation (or just [`analysis.qmd`](./analysis.qmd)), but please **be careful to push them** otherwise we will bloat the repository.
+
 ## Workflow
 
 1. **If you want to work on a task** (i.e. a "feature"), please **create a new branch** with an appropriate name (e.g. `presentation`, `data-loading`, etc.).

@@ -29,8 +29,9 @@ praxisprojekt/
 │   ├── raw/                # Original, unmodified datasets
 │   └── intermediate/       # Cleaned/transformed data ready for analysis
 ├── plots/                  # Generated plot output files
-├── report.qmd              # One-page Quarto report
-├── presentation.qmd        # Quarto (final) presentation slides
+├── analysis.qmd            # Local experimentation and exploratory analysis
+├── report.qmd              # DIN A4 Executive Summary (PDF)
+├── presentation.qmd        # Final presentation slides (Reveal.js)
 ├── settings.R              # Project-wide settings and configuration
 ├── source_all.R            # Sources all R scripts in code/ and settings.R
 └── renv/                   # Local renv library and infrastructure

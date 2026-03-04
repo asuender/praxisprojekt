@@ -1,0 +1,10 @@
+---
+title: "Analyse-Notebook"
+author: "Jinwook Bae, Miriam Haf, Xuchen Shen, Andreas Sünder"
+lang: de
+format: html
+---
+
+```{r setup, include=FALSE}
+source("source_all.R")
+```
