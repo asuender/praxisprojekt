@@ -20,3 +20,7 @@ All OpenCode instances mentioned below use version >=1.2.15 and Claude Opus 4.6.
 **`report.qmd`:**
 
 - OpenCode: generate YAML header
+
+**`settings.R`:**
+
+- OpenCode: create dataset url structure based on issue #3
