@@ -7,4 +7,80 @@ format: html
 
 ```{r setup, include=FALSE}
 source("source_all.R")
+download_data()
+
+COUNTRIES <- c("Germany", "Italy", "Sweden")
 ```
+
+# Analysis of education data
+
+## School to work transition
+
+```{r}
+# stwt <- load_ilo_stwt()
+# # stwt[, `:=`(indicator.label = NULL, note_source.label = NULL)]
+# setnames(stwt, c("ref_area.label", "sex.label", "classif1.label", "time", "obs_value"), c("country", "sex", "classifier", "year", "value"))
+# 
+# data <- stwt[year == 2023 & sex != "Total" & classifier == "Status in employment (ICSE-93): 1. Employees", .(year, country, classifier, sex, value)]
+# 
+# View(data[, , by = country])
+# 
+# ggplot(data[country %in% c("Germany", "Italy", "Sweden", "Mexico", "Jordan")], aes(x = country, y = value, fill = sex)) +
+#   geom_bar(position = "fill", stat = "identity")
+```
+
+## Completion rates
+
+```{r}
+completion <- load_uis_completion_rates()
+
+completion[order(-year), .N, by = year]
+
+# Global completion
+completion.global <- completion[year == 2022, .(value = sum(value)), by = .(indicator, sex)]
+ggplot(completion.global, aes(x = indicator, y = value, fill = sex)) +
+  geom_bar(position = "dodge", stat = "identity")
+
+# by country
+completion.countries <- completion[country %in% COUNTRIES]
+ggplot(completion.countries[year == 2020], aes(x = country, y = value, fill = sex)) +
+  geom_col(position = "dodge") +
+  facet_wrap(~indicator, ncol = 1)
+
+# over time (averaged over all countries)
+completion.global_time <- completion[, .(value = mean(value, na.rm = TRUE)),
+  by = .(year, indicator, sex)]
+ggplot(completion.global_time, aes(x = year, y = value, color = sex, linetype = indicator)) +
+  geom_line()
+```
+
+## Youth literacy
+
+```{r}
+literacy <- load_uis_literacy_rates()
+
+literacy[order(-year), .N, by = year]
+
+literacy.uis <- literacy[age_group == "15-24" & grepl("^UIS:", geoUnit)]
+literacy.uis[, region := sub("^UIS: ", "", geoUnit)]
+
+literacy.gap <- dcast(literacy.uis,
+  region + year ~ sex, value.var = "value"
+)[, gap := Male - Female]
+
+# Use most recent year available per region
+literacy.gap.latest <- literacy.gap[!is.na(gap), .SD[which.max(year)], by = region]
+
+# Globally (most recent year available)
+ggplot(literacy.gap.latest, aes(x = reorder(region, gap), y = gap)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = NULL, y = "Gender gap (male - female, pp)")
+
+# over time
+ggplot(literacy.gap, aes(x = year, y = gap, color = region)) +
+     geom_line()
+```
+
+
+

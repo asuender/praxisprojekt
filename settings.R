@@ -37,5 +37,56 @@ config.dataset.urls <- list(
   list(
     url = "https://ourworldindata.org/grapher/human-development-index.csv?v=1&csvType=full&useColumnShortNames=true",
     filename = "owid_hdi.csv"
+  ),
+
+  # School to work transition
+  list(
+    url = "https://rplumber.ilo.org/data/indicator/?id=POP_3TED_SEX_STE_NB_A&lang=en&type=label&format=.csv.gz&channel=ilostat",
+    filename = "ilo_school_to_work_transitions.csv.gz"
+  ),
+
+  # Education (completion rate by level of education and by sex)
+  # UIS API returns zip archives containing a CSV
+  list(
+    url = "https://api.uis.unesco.org/api/public/data/indicators/export?indicator=CR.1.F&start=2000&end=2024&indicatorMetadata=true&footnotes=true&version=20260224-aef8b145&format=csv",
+    filename = "uis_completion_rate_primary_female.zip"
+  ),
+  list(
+    url = "https://api.uis.unesco.org/api/public/data/indicators/export?indicator=CR.1.M&start=2000&end=2024&indicatorMetadata=false&footnotes=false&version=20260224-aef8b145&format=csv",
+    filename = "uis_completion_rate_primary_male.zip"
+  ),
+  list(
+    url = "https://api.uis.unesco.org/api/public/data/indicators/export?indicator=CR.2.F&start=2000&end=2024&indicatorMetadata=false&footnotes=false&version=20260224-aef8b145&format=csv",
+    filename = "uis_completion_rate_lower_secondary_female.zip"
+  ),
+  list(
+    url = "https://api.uis.unesco.org/api/public/data/indicators/export?indicator=CR.2.M&start=2000&end=2024&indicatorMetadata=false&footnotes=false&version=20260224-aef8b145&format=csv",
+    filename = "uis_completion_rate_lower_secondary_male.zip"
+  ),
+  list(
+    url = "https://api.uis.unesco.org/api/public/data/indicators/export?indicator=CR.3.F&start=2000&end=2024&indicatorMetadata=false&footnotes=false&version=20260224-aef8b145&format=csv",
+    filename = "uis_completion_rate_upper_secondary_female.zip"
+  ),
+  list(
+    url = "https://api.uis.unesco.org/api/public/data/indicators/export?indicator=CR.3.M&start=2000&end=2024&indicatorMetadata=false&footnotes=false&version=20260224-aef8b145&format=csv",
+    filename = "uis_completion_rate_upper_secondary_male.zip"
+  ),
+
+  # Literacy rate by sex and age group
+  list(
+    url = "https://api.uis.unesco.org/api/public/data/indicators/export?indicator=LR.AG15T24.M&start=2000&end=2024&indicatorMetadata=false&footnotes=false&version=20260224-aef8b145&format=csv",
+    filename = "uis_literacy_rate_youth_male.zip"
+  ),
+  list(
+    url = "https://api.uis.unesco.org/api/public/data/indicators/export?indicator=LR.AG15T24.F&start=2000&end=2024&indicatorMetadata=false&footnotes=false&version=20260224-aef8b145&format=csv",
+    filename = "uis_literacy_rate_youth_female.zip"
+  ),
+  list(
+    url = "https://api.uis.unesco.org/api/public/data/indicators/export?indicator=LR.AG25T64.M&start=2000&end=2024&indicatorMetadata=false&footnotes=false&version=20260224-aef8b145&format=csv",
+    filename = "uis_literacy_rate_adult_male.zip"
+  ),
+  list(
+    url = "https://api.uis.unesco.org/api/public/data/indicators/export?indicator=LR.AG25T64.F&start=2000&end=2024&indicatorMetadata=false&footnotes=false&version=20260224-aef8b145&format=csv",
+    filename = "uis_literacy_rate_adult_female.zip"
   )
 )
