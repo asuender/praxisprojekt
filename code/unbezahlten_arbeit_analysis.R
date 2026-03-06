@@ -31,7 +31,7 @@ filtered_domestic_work_time <- FDWT(owid_domestic_work_time)
 
 # bar graph for ratio throughout years
 ggplot(filtered_domestic_work_time, aes(x = factor(year), y = ratio)) +
-  geom_col(fill = "steelblue") +
+  geom_col(fill = "blue") +
   geom_hline(yintercept = 1, linetype = "dashed", color = "black") +
   labs(
     title = "Female-to-Male Ratio of Time Spent on Unpaid Domestic Work",
@@ -46,7 +46,7 @@ ggplot(filtered_domestic_work_time, aes(x = factor(year), y = ratio)) +
 
 # bar graph for gender gap throughout years
 ggplot(filtered_domestic_work_time, aes(x = factor(year), y = gender_gap)) +
-  geom_col(fill = "tomato") +
+  geom_col(fill = "red") +
   geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
   labs(
     title = "Gender Gap in Time Spent on Unpaid Domestic Work",
@@ -58,8 +58,6 @@ ggplot(filtered_domestic_work_time, aes(x = factor(year), y = gender_gap)) +
     axis.text.x = element_text(angle = 45, hjust = 1),
     plot.title = element_text(face = "bold")
   )
-
-
 
 ### ILOSTAT care share interpreted
 # The value interprets, among all people who are outside the labour force,
@@ -86,7 +84,7 @@ dt_crs_year <- dt.crs[
 # plot median value for male and female as stacked bar graph along years.
 ggplot(dt_crs_year, aes(x = factor(year), y = value, fill = sex)) +
   geom_col() +
-  scale_fill_manual(values = c("Female" = "tomato", "Male" = "steelblue")) +
+  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
   labs(
     title = "Share of People Outside Labour Force Due to Care Responsibilities",
     x = "Year",
@@ -97,6 +95,26 @@ ggplot(dt_crs_year, aes(x = factor(year), y = value, fill = sex)) +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1),
     plot.title = element_text(face = "bold")
+  )
+
+### ILOSTAT care share interpreted
+# side by side bar graph.
+
+ggplot(dt_crs_year, aes(x = factor(year), y = value, fill = sex)) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7) +
+  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
+  labs(
+    title = "Share Outside the Labour Force Due to Care Responsibilities",
+    subtitle = "Median across countries by year",
+    x = "Year",
+    y = "Median share (%)",
+    fill = "Sex"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(face = "bold"),
+    legend.position = "top"
   )
 
 
@@ -114,7 +132,7 @@ plot_care_country <- function(data, country_name) {
   ]
   ggplot(dt_country, aes(x = factor(year), y = value, fill = sex)) +
     geom_col(position = "dodge") +
-    scale_fill_manual(values = c("Female" = "tomato", "Male" = "steelblue")) +
+    scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
     labs(
       title = paste("Share Outside Labour Force Due to Care –", country_name),
       x = "Year",
@@ -132,4 +150,3 @@ plot_care_country <- function(data, country_name) {
 # compared to the median of all.
 
 plot_care_country(dt.crs, "Canada")
-
