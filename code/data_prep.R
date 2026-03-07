@@ -3,12 +3,24 @@ library(checkmate)
 library(here)
 library(countrycode)
 
-load_data <- function() {
-  # TODO: implement data loading
-}
-
 load_ilo_stwt <- function() {
   fread(here("data", "raw", "ilo_school_to_work_transitions.csv.gz"))
+}
+
+prepare_uis_data <- function(files) {
+  DT <- rbindlist(lapply(files, function(f) {
+    fread(cmd = paste("unzip -p", here("data", "raw", f), "'*/data.csv'"))
+  }), idcol = "indicator")
+
+  DT[, sex := sub(".*_", "", indicator)]
+  DT[, sex := factor(fcase(
+    sex == "female", "Female",
+    sex == "male",   "Male"
+  ), levels = c("Female", "Male"))]
+
+  DT[, country := countrycode(geoUnit, origin = "iso3c", destination = "country.name")]
+
+  DT
 }
 
 load_uis_completion_rates <- function() {
@@ -21,25 +33,16 @@ load_uis_completion_rates <- function() {
     upper_sec_male   = "uis_completion_rate_upper_secondary_male.zip"
   )
 
-  dt <- rbindlist(lapply(files, function(f) {
-    fread(cmd = paste("unzip -p", here("data", "raw", f), "'*/data.csv'"))
-  }), idcol = "indicator")
+  DT <- prepare_uis_data(files)
 
-  dt[, sex := sub(".*_", "", indicator)]
-  dt[, indicator := sub("_[^_]+$", "", indicator)]
-
-  dt[, indicator := factor(fcase(
+  DT[, indicator := sub("_[^_]+$", "", indicator)]
+  DT[, indicator := factor(fcase(
     indicator == "primary",   "Primary",
     indicator == "lower_sec", "Lower secondary",
     indicator == "upper_sec", "Upper secondary"
   ), levels = c("Upper secondary", "Lower secondary", "Primary"))]
-  dt[, sex := factor(fcase(
-    sex == "female", "Female",
-    sex == "male",   "Male"
-  ), levels = c("Female", "Male"))]
-  dt[, country := countrycode(geoUnit, origin = "iso3c", destination = "country.name")]
 
-  dt
+  DT
 }
 
 load_uis_literacy_rates <- function() {
@@ -50,23 +53,15 @@ load_uis_literacy_rates <- function() {
     adult_female = "uis_literacy_rate_adult_female.zip"
   )
 
-  dt <- rbindlist(lapply(files, function(f) {
-    fread(cmd = paste("unzip -p", here("data", "raw", f), "'*/data.csv'"))
-  }), idcol = "indicator")
+  DT <- prepare_uis_data(files)
 
-  dt[, sex := sub(".*_", "", indicator)]
-  dt[, age_group := sub("_[^_]+$", "", indicator)]
-
-  dt[, age_group := fcase(
+  DT[, age_group := sub("_[^_]+$", "", indicator)]
+  DT[, age_group := fcase(
     age_group == "youth", "15-24",
     age_group == "adult", "25-64"
   )]
-  dt[, sex := factor(fcase(
-    sex == "female", "Female",
-    sex == "male",   "Male"
-  ), levels = c("Female", "Male"))]
-  dt[, country := countrycode(geoUnit, origin = "iso3c", destination = "country.name")]
 
-  dt[, indicator := NULL]
-  dt
+  DT[, indicator := NULL]
+
+  DT
 }
