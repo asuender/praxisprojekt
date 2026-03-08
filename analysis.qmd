@@ -13,6 +13,12 @@ COUNTRIES <- c("Germany", "Italy", "Sweden")
 world <- ne_countries(scale = "medium", returnclass = "sf")
 ```
 
+# Analysis of generic inequality data
+
+```{r}
+
+```
+
 # Analysis of education data
 
 ## Completion rates
@@ -90,7 +96,7 @@ literacy.gap <- dcast(literacy.uis,
 )[, gap := Male - Female]
 
 # Use most recent year available per region
-literacy.gap.latest <- literacy.gap[!is.na(gap), .SD[which.max(year)], by = region]
+literacy.gap.latest <- literacy.gap[year == max(year)]
 
 # Globally (most recent year available)
 ggplot(literacy.gap.latest, aes(x = reorder(region, gap), y = gap)) +
