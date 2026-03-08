@@ -59,6 +59,7 @@ ggplot(filtered_domestic_work_time, aes(x = factor(year), y = gender_gap)) +
     plot.title = element_text(face = "bold")
   )
 
+
 ### ILOSTAT care share interpreted
 # The value interprets, among all people who are outside the labour force,
 # what percentage say that care responsibilities are the reason.
@@ -120,7 +121,7 @@ ggplot(dt_crs_year, aes(x = factor(year), y = value, fill = sex)) +
 
 
 ### ILOSTAT care share interpreted
-# now lets interpret the share in individual countries throughout the years.
+# now lets interpret the share in individual countries throughout the years with a function.
 # Dependent on function input we graph the change in share for both male
 # and female for a given country (from 2000 onwards).
 
@@ -150,3 +151,22 @@ plot_care_country <- function(data, country_name) {
 # compared to the median of all.
 
 plot_care_country(dt.crs, "Canada")
+
+
+### ILOSTAT no. of volunteers interpreted
+
+volunteer_count <- read_csv("data/raw/ilo_volunteers_count.csv.gz")
+names(volunteer_count)
+
+setDT(volunteer_count)
+vc.clean <- volunteer_count[ sex.label %in% c("Male", "Female")]
+
+vc.clean[, obs_value := as.numeric(obs_value)]
+vc.clean <- vc.clean[!is.na(obs_value)]s
+
+vc.clean.collapsed <- vc.clean[, .(
+  total_volunteers = sum(obs_value, na.rm = TRUE)
+), by = .(ref_area.label, time, sex.label)]
+
+vc.final <- vc.clean.collapsed[, if(.N == 2) .SD, by = .(ref_area.label, time)]
+unique(vc.final[, .N, by = .(ref_area.label, time)]$N)

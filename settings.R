@@ -26,7 +26,10 @@ config.dataset.urls <- list(
     url = "https://rplumber.ilo.org/data/indicator/?id=FOW_TVOL_SEX_VOL_RT_A&lang=en&type=label&format=.csv.gz&channel=ilostat",
     filename = "ilo_volunteer_rate.csv.gz"
   ),
-
+  list(
+    url = "https://rplumber.ilo.org/data/indicator/?id=EIP_RCAR_SEX_RT_A&lang=en&type=label&format=.csv.gz&channel=ilostat",
+    filename = "care_responsbility_share.csv.gz"
+  ),
   # Labour force participation
   list(
     url = "https://rplumber.ilo.org/data/indicator/?id=EAP_DWAP_SEX_AGE_RT_A&lang=en&type=label&format=.csv.gz&channel=ilostat",
@@ -37,10 +40,5 @@ config.dataset.urls <- list(
   list(
     url = "https://ourworldindata.org/grapher/human-development-index.csv?v=1&csvType=full&useColumnShortNames=true",
     filename = "owid_hdi.csv"
-  ),
-  # care responsility
-  list(
-    url = "https://rplumber.ilo.org/data/indicator/?id=EIP_RCAR_SEX_RT_A&lang=en&type=label&format=.csv.gz&channel=ilostat",
-    filename = "care_responsbility_share.csv.gz"
   )
 )
