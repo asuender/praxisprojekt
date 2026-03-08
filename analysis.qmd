@@ -28,20 +28,20 @@ completion[order(-year), .N, by = year]
 completion.global <- completion[year == 2022 & geoUnit == "SDG: World", value, by = .(indicator, sex)]
 ggplot(completion.global, aes(x = indicator, y = value, fill = sex)) +
   geom_bar(position = "dodge", stat = "identity") + 
-  ggtitle("Global completion rates by gender, 2022")
+  labs(title = "Global completion rates by gender, 2022")
 
 # by country
 completion.countries <- completion[country %in% COUNTRIES]
 ggplot(completion.countries[year == 2020], aes(x = country, y = value, fill = sex)) +
   geom_col(position = "dodge") +
   facet_wrap(~indicator, ncol = 1) +
-  ggtitle("Completion rates for selected countries, 2022")
+  labs(title = "Completion rates for selected countries, 2022")
 
 # over time (averaged over all countries)
 completion.global_time <- completion[geoUnit == "SDG: World"]
 ggplot(completion.global_time, aes(x = year, y = value, color = sex, linetype = indicator)) +
   geom_line() +
-  ggtitle("Global completion rates over time")
+  labs(title = "Global completion rates over time")
 ```
 
 ## Gender parity index
@@ -97,11 +97,11 @@ ggplot(literacy.gap.latest, aes(x = reorder(region, gap), y = gap)) +
   geom_col() +
   coord_flip() +
   labs(x = NULL, y = "Gender gap (male - female, pp)") +
-  ggtitle("Gender gap in global literacy rates, by region")
+  labs(title = "Gender gap in global literacy rates, by region")
 
 # over time
 ggplot(literacy.gap, aes(x = year, y = gap, color = region)) +
   geom_line() +
-  ggtitle("Global literacy rates over time, by region")
+  labs(title = "Global literacy rates over time, by region")
 ```
 
