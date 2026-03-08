@@ -45,6 +45,12 @@ config.dataset.urls <- list(
     filename = "ilo_school_to_work_transitions.csv.gz"
   ),
 
+  # Gender Inequality Index (GII)
+  list(
+    url = "https://ourworldindata.org/grapher/gender-inequality-index-from-the-human-development-report.csv?v=1&csvType=full&useColumnShortNames=true",
+    filename = "owid_gender_inequality_index.csv"
+  ),
+
   # Education (completion rate by level of education and by sex)
   # UIS API returns zip archives containing a CSV
   list(

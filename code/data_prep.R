@@ -3,6 +3,14 @@ library(checkmate)
 library(here)
 library(countrycode)
 
+load_owid_gii_data <- function() {
+  DT <- fread(here("data", "raw", "owid_gender_inequality_index.csv"))
+
+  setnames(DT, c("entity", "gii"), c("country", "value"))
+
+  DT
+}
+
 load_ilo_stwt <- function() {
   fread(here("data", "raw", "ilo_school_to_work_transitions.csv.gz"))
 }

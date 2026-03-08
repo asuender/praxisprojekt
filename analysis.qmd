@@ -16,7 +16,23 @@ world <- ne_countries(scale = "medium", returnclass = "sf")
 # Analysis of generic inequality data
 
 ```{r}
+gii <- load_owid_gii_data()
 
+gii[order(-year), .N, by = year]
+
+gii.latest <- gii[year == max(year)]
+gii_world <- merge(world, gii.latest, by.x = "iso_a3", by.y = "code", all.x = TRUE)
+
+ggplot(gii_world) +
+  geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
+  scale_fill_distiller(
+    palette = "YlOrRd", direction = 1,
+    name = "GII", na.value = "grey80",
+    limits = c(0, 1)
+  ) +
+  coord_sf(ylim = c(-56, 90)) +
+  theme_minimal() +
+  labs(title = "Gender Inequality Index, 2023")
 ```
 
 # Analysis of education data
