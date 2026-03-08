@@ -65,3 +65,32 @@ load_uis_literacy_rates <- function() {
 
   DT
 }
+
+load_owid_gpi_data <- function() {
+  files <- list(
+    "Pre-primary"     = "owid_school_enrollment_rates.csv",
+    "Primary"         = "owid_gross_enrolment_primary.csv",
+    "Lower secondary" = "owid_gross_enrolment_lower_secondary.csv",
+    "Upper secondary" = "owid_gross_enrolment_upper_secondary.csv",
+    "Tertiary"        = "owid_gross_enrolment_tertiary.csv"
+  )
+
+  DT <- rbindlist(lapply(names(files), function(level) {
+    dt <- fread(here("data", "raw", files[[level]]))
+    cols <- names(dt)
+    col_fe <- grep("fe", cols, ignore.case = TRUE, value = TRUE)
+    col_ma <- setdiff(cols[4:5], col_fe)
+
+    setnames(dt, c(cols[1:2], col_fe, col_ma), c("geoUnit", "geoCode", "Female", "Male"))
+    dt[, level := level]
+    dt
+  }), fill = TRUE)
+
+  DT[, value := Female / Male]
+  DT[, country := countrycode(geoCode, origin = "iso3c", destination = "country.name")]
+  DT[, educationLevel := factor(level, levels = c(
+    "Pre-primary", "Primary", "Lower secondary", "Upper secondary", "Tertiary"
+  ))]
+
+  DT[, .(geoCode, country, year, educationLevel, value)]
+}

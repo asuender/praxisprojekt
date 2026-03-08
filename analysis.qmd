@@ -10,49 +10,70 @@ source("source_all.R")
 download_data()
 
 COUNTRIES <- c("Germany", "Italy", "Sweden")
+world <- ne_countries(scale = "medium", returnclass = "sf")
 ```
 
 # Analysis of education data
-
-## School to work transition
-
-```{r}
-# stwt <- load_ilo_stwt()
-# # stwt[, `:=`(indicator.label = NULL, note_source.label = NULL)]
-# setnames(stwt, c("ref_area.label", "sex.label", "classif1.label", "time", "obs_value"), c("country", "sex", "classifier", "year", "value"))
-# 
-# data <- stwt[year == 2023 & sex != "Total" & classifier == "Status in employment (ICSE-93): 1. Employees", .(year, country, classifier, sex, value)]
-# 
-# View(data[, , by = country])
-# 
-# ggplot(data[country %in% c("Germany", "Italy", "Sweden", "Mexico", "Jordan")], aes(x = country, y = value, fill = sex)) +
-#   geom_bar(position = "fill", stat = "identity")
-```
 
 ## Completion rates
 
 ```{r}
 completion <- load_uis_completion_rates()
 
+# This will be removed from the final code, just check data availability
+# for individual years
 completion[order(-year), .N, by = year]
 
 # Global completion
-completion.global <- completion[year == 2022, .(value = sum(value)), by = .(indicator, sex)]
+completion.global <- completion[year == 2022 & geoUnit == "SDG: World", value, by = .(indicator, sex)]
 ggplot(completion.global, aes(x = indicator, y = value, fill = sex)) +
-  geom_bar(position = "dodge", stat = "identity")
+  geom_bar(position = "dodge", stat = "identity") + 
+  ggtitle("Global completion rates by gender, 2022")
 
 # by country
 completion.countries <- completion[country %in% COUNTRIES]
 ggplot(completion.countries[year == 2020], aes(x = country, y = value, fill = sex)) +
   geom_col(position = "dodge") +
-  facet_wrap(~indicator, ncol = 1)
+  facet_wrap(~indicator, ncol = 1) +
+  ggtitle("Completion rates for selected countries, 2022")
 
 # over time (averaged over all countries)
-completion.global_time <- completion[, .(value = mean(value, na.rm = TRUE)),
-  by = .(year, indicator, sex)]
+completion.global_time <- completion[geoUnit == "SDG: World"]
 ggplot(completion.global_time, aes(x = year, y = value, color = sex, linetype = indicator)) +
-  geom_line()
+  geom_line() +
+  ggtitle("Global completion rates over time")
 ```
+
+## Gender parity index
+
+```{r}
+gpi <- load_owid_gpi_data()
+
+# we outsource the repeating tasks for each education level
+# to avoid duplicated code segments
+plot_gpi_map <- function(data, level) {
+  gpi_filtered <- data[year == 2020 & educationLevel == level]
+  world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "geoCode", all.x = TRUE)
+
+  ggplot(world_merged) +
+    geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
+    scale_fill_gradient2(
+      midpoint = 1, low = "#b2182b", mid = "#ffffbf", high = "#2166ac",
+      name = "GPI", na.value = "grey80",
+      limits = c(0.5, 1.5), oob = scales::squish
+    ) +
+    coord_sf(ylim = c(-56, 90)) +
+    theme_minimal() +
+    labs(title = paste("Gender Parity Index -", level, "Gross Enrollment Ratio"))
+}
+
+plot_gpi_map(gpi, "Pre-primary")
+plot_gpi_map(gpi, "Primary")
+plot_gpi_map(gpi, "Lower secondary")
+plot_gpi_map(gpi, "Upper secondary")
+plot_gpi_map(gpi, "Tertiary")
+```
+
 
 ## Youth literacy
 
@@ -75,12 +96,12 @@ literacy.gap.latest <- literacy.gap[!is.na(gap), .SD[which.max(year)], by = regi
 ggplot(literacy.gap.latest, aes(x = reorder(region, gap), y = gap)) +
   geom_col() +
   coord_flip() +
-  labs(x = NULL, y = "Gender gap (male - female, pp)")
+  labs(x = NULL, y = "Gender gap (male - female, pp)") +
+  ggtitle("Gender gap in global literacy rates, by region")
 
 # over time
 ggplot(literacy.gap, aes(x = year, y = gap, color = region)) +
-     geom_line()
+  geom_line() +
+  ggtitle("Global literacy rates over time, by region")
 ```
-
-
 

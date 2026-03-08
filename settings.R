@@ -72,6 +72,24 @@ config.dataset.urls <- list(
     filename = "uis_completion_rate_upper_secondary_male.zip"
   ),
 
+  # School enrollment rates
+  list(
+    url = "https://ourworldindata.org/grapher/school-enrolment.csv?v=1&csvType=full&useColumnShortNames=true&enrolment_type=gross_enrolment&level=primary&sex=sex_side_by_side",
+    filename = "owid_gross_enrolment_primary.csv"
+  ),
+  list(
+    url = "https://ourworldindata.org/grapher/school-enrolment.csv?v=1&csvType=full&useColumnShortNames=true&enrolment_type=gross_enrolment&level=lower_secondary&sex=sex_side_by_side",
+    filename = "owid_gross_enrolment_lower_secondary.csv"
+  ),
+  list(
+    url = "https://ourworldindata.org/grapher/school-enrolment.csv?v=1&csvType=full&useColumnShortNames=true&enrolment_type=gross_enrolment&level=upper_secondary&sex=sex_side_by_side",
+    filename = "owid_gross_enrolment_upper_secondary.csv"
+  ),
+  list(
+    url = "https://ourworldindata.org/grapher/school-enrolment.csv?v=1&csvType=full&useColumnShortNames=true&enrolment_type=gross_enrolment&level=tertiary&sex=sex_side_by_side",
+    filename = "owid_gross_enrolment_tertiary.csv"
+  ),
+
   # Literacy rate by sex and age group
   list(
     url = "https://api.uis.unesco.org/api/public/data/indicators/export?indicator=LR.AG15T24.M&start=2000&end=2024&indicatorMetadata=false&footnotes=false&version=20260224-aef8b145&format=csv",
