@@ -1,65 +1,3 @@
-
-### OWID domestic work data interpreted.
-# The lack of data for individual countries has led to taking the median of
-# all countries in each year for a general view of whether the inequality in
-# unpaid work exists throughout time.
-owid_domestic_work_time <- read_csv("data/raw/owid_domestic_work_time.csv")
-names(owid_domestic_work_time)
-
-FDWT <- function(data) {
-  data <- as.data.table(data)
-  data <- data[, .(
-    country = entity,
-    year = year,
-    female = `_5_4_1__sl_dom_tspd__15_years_old_and_over__all_areas__female`,
-    male   = `_5_4_1__sl_dom_tspd__15_years_old_and_over__all_areas__male`
-  )]
-  data <- data[!is.na(female) & !is.na(male)]
-  dt_year <- data[
-    , .(
-      female_med = median(female, na.rm = TRUE),
-      male_med   = median(male, na.rm = TRUE)
-    ),
-    by = year
-  ]
-  dt_year[, gender_gap := female_med - male_med]
-  dt_year[, ratio := female_med / male_med]
-  return(dt_year)
-}
-
-filtered_domestic_work_time <- FDWT(owid_domestic_work_time)
-
-# bar graph for ratio throughout years
-ggplot(filtered_domestic_work_time, aes(x = factor(year), y = ratio)) +
-  geom_col(fill = "blue") +
-  geom_hline(yintercept = 1, linetype = "dashed", color = "black") +
-  labs(
-    title = "Female-to-Male Ratio of Time Spent on Unpaid Domestic Work",
-    x = "Year",
-    y = "Female / Male Ratio"
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    plot.title = element_text(face = "bold")
-  )
-
-# bar graph for gender gap throughout years
-ggplot(filtered_domestic_work_time, aes(x = factor(year), y = gender_gap)) +
-  geom_col(fill = "red") +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
-  labs(
-    title = "Gender Gap in Time Spent on Unpaid Domestic Work",
-    x = "Year",
-    y = "Female − Male (% of day)"
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    plot.title = element_text(face = "bold")
-  )
-
-
 ### ILOSTAT care share interpreted
 # The value interprets, among all people who are outside the labour force,
 # what percentage say that care responsibilities are the reason.
@@ -69,14 +7,18 @@ care_responsibilities_share <- read_csv("data/raw/care_responsbility_share.csv.g
 names(care_responsibilities_share)
 
 dt.crs <- as.data.table(care_responsibilities_share)
+# simplify names
 dt.crs <- dt.crs[, .(
   country = ref_area.label,
   year = time,
   sex = sex.label,
   value = obs_value
 )]
+# extract only male and female (remove total)
 dt.crs <- dt.crs[sex %in% c("Male", "Female")]
+# remove NA values
 dt.crs <- dt.crs[!is.na(value)]
+# median share amongst gender along the years
 dt_crs_year <- dt.crs[
   , .(value = median(value, na.rm = TRUE)),
   by = .(year, sex)
@@ -100,7 +42,6 @@ ggplot(dt_crs_year, aes(x = factor(year), y = value, fill = sex)) +
 
 ### ILOSTAT care share interpreted
 # side by side bar graph.
-
 ggplot(dt_crs_year, aes(x = factor(year), y = value, fill = sex)) +
   geom_col(position = position_dodge(width = 0.8), width = 0.7) +
   scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
@@ -154,15 +95,14 @@ plot_care_country(dt.crs, "Canada")
 
 
 ### ILOSTAT no. of volunteers interpreted
-
 volunteer_count <- read_csv("data/raw/ilo_volunteers_count.csv.gz")
 names(volunteer_count)
 
 setDT(volunteer_count)
-vc.clean <- volunteer_count[ sex.label %in% c("Male", "Female")]
+vc.clean <- volunteer_count[sex.label %in% c("Male", "Female")]
 
 vc.clean[, obs_value := as.numeric(obs_value)]
-vc.clean <- vc.clean[!is.na(obs_value)]s
+vc.clean <- vc.clean[!is.na(obs_value)]
 
 vc.clean.collapsed <- vc.clean[, .(
   total_volunteers = sum(obs_value, na.rm = TRUE)
@@ -170,3 +110,16 @@ vc.clean.collapsed <- vc.clean[, .(
 
 vc.final <- vc.clean.collapsed[, if(.N == 2) .SD, by = .(ref_area.label, time)]
 unique(vc.final[, .N, by = .(ref_area.label, time)]$N)
+
+# Female-to-male ratio of volunteers by country
+vc.ratio <- vc.final[, .(
+  ratio = total_volunteers[sex.label == "Female"] / total_volunteers[sex.label == "Male"]
+), by = .(ref_area.label, time)]
+
+# Global trend over time
+vc.med <- vc.ratio[, .(median_ratio = median(ratio, na.rm = TRUE)), by = time]
+ggplot(vc.med, aes(x = factor(time), y = median_ratio)) +
+  geom_col(fill = "blue") +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  labs(title = "Female/Male Volunteer Ratio Over Time", x = "Year", y = "Ratio") +
+  theme_minimal()
