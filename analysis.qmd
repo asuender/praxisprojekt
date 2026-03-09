@@ -10,6 +10,10 @@ source("source_all.R")
 download_data()
 
 COUNTRIES <- c("Germany", "Italy", "Sweden")
+COUNTRIES_FOR_LITERACY <- c("Thailand", "India", "Afghanistan")
+YEAR <- 2023
+YEAR_FOR_LITERACY <- 2020
+
 world <- ne_countries(scale = "medium", returnclass = "sf")
 ```
 
@@ -47,7 +51,7 @@ completion <- load_uis_completion_rates()
 completion[order(-year), .N, by = year]
 
 # Global completion
-completion.global <- completion[year == 2022 & geoUnit == "SDG: World", value, by = .(indicator, sex)]
+completion.global <- completion[year == 2022 & code == "SDG: World", value, by = .(indicator, sex)]
 ggplot(completion.global, aes(x = indicator, y = value, fill = sex)) +
   geom_bar(position = "dodge", stat = "identity") + 
   labs(title = "Global completion rates by gender, 2022")
@@ -60,7 +64,7 @@ ggplot(completion.countries[year == 2020], aes(x = country, y = value, fill = se
   labs(title = "Completion rates for selected countries, 2022")
 
 # over time (averaged over all countries)
-completion.global_time <- completion[geoUnit == "SDG: World"]
+completion.global_time <- completion[code == "SDG: World"]
 ggplot(completion.global_time, aes(x = year, y = value, color = sex, linetype = indicator)) +
   geom_line() +
   labs(title = "Global completion rates over time")
@@ -71,11 +75,13 @@ ggplot(completion.global_time, aes(x = year, y = value, color = sex, linetype = 
 ```{r}
 gpi <- load_owid_gpi_data()
 
+gpi[order(-year), .N, by = .(educationLevel, year)]
+
 # we outsource the repeating tasks for each education level
 # to avoid duplicated code segments
 plot_gpi_map <- function(data, level) {
   gpi_filtered <- data[year == 2020 & educationLevel == level]
-  world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "geoCode", all.x = TRUE)
+  world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "code", all.x = TRUE)
 
   ggplot(world_merged) +
     geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
@@ -89,7 +95,6 @@ plot_gpi_map <- function(data, level) {
     labs(title = paste("Gender Parity Index -", level, "Gross Enrollment Ratio"))
 }
 
-plot_gpi_map(gpi, "Pre-primary")
 plot_gpi_map(gpi, "Primary")
 plot_gpi_map(gpi, "Lower secondary")
 plot_gpi_map(gpi, "Upper secondary")
@@ -102,28 +107,31 @@ plot_gpi_map(gpi, "Tertiary")
 ```{r}
 literacy <- load_uis_literacy_rates()
 
-literacy[order(-year), .N, by = year]
+literacy[order(-year), .N, by = .(year, ageGroup)]
 
-literacy.uis <- literacy[age_group == "15-24" & grepl("^UIS:", geoUnit)]
-literacy.uis[, region := sub("^UIS: ", "", geoUnit)]
+literacy.countries <- literacy[country %in% COUNTRIES_FOR_LITERACY]
 
-literacy.gap <- dcast(literacy.uis,
-  region + year ~ sex, value.var = "value"
-)[, gap := Male - Female]
+# As mentioned by our adviser, we will skip regions for now
+# literacy.regions <- literacy[ageGroup == "15-24" & grepl("^UIS:", code)]
+# literacy.regions[, region := sub("^UIS: ", "", code)]
 
-# Use most recent year available per region
-literacy.gap.latest <- literacy.gap[year == max(year)]
+literacy.gap.countries <- dcast(literacy.countries,
+  country + year + ageGroup ~ sex, value.var = "value"
+)[, gap := male - female]
+literacy.gap.countries.latest <- literacy.gap.countries[year == YEAR_FOR_LITERACY]
 
-# Globally (most recent year available)
-ggplot(literacy.gap.latest, aes(x = reorder(region, gap), y = gap)) +
+# per country (2020)
+ggplot(literacy.gap.countries.latest, aes(x = reorder(country, gap), y = gap)) +
   geom_col() +
   coord_flip() +
+  facet_wrap(~ ageGroup) +
   labs(x = NULL, y = "Gender gap (male - female, pp)") +
-  labs(title = "Gender gap in global literacy rates, by region")
+  labs(title = "Gender gap in literacy rates, by country and age group")
 
 # over time
-ggplot(literacy.gap, aes(x = year, y = gap, color = region)) +
+ggplot(literacy.gap.countries, aes(x = year, y = gap, color = country)) +
   geom_line() +
-  labs(title = "Global literacy rates over time, by region")
+  facet_wrap(~ ageGroup) +
+  labs(title = "Gender literacy gap over time, by country and age group")
 ```
 

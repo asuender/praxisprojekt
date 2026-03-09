@@ -21,12 +21,10 @@ prepare_uis_data <- function(files) {
   }), idcol = "indicator")
 
   DT[, sex := sub(".*_", "", indicator)]
-  DT[, sex := factor(fcase(
-    sex == "female", "Female",
-    sex == "male",   "Male"
-  ), levels = c("Female", "Male"))]
+  DT[, sex := factor(sex, levels = c("female", "male"))]
 
-  DT[, country := countrycode(geoUnit, origin = "iso3c", destination = "country.name")]
+  setnames(DT, "geoUnit", "code")
+  DT[, country := countrycode(code, origin = "iso3c", destination = "country.name")]
 
   DT
 }
@@ -63,20 +61,19 @@ load_uis_literacy_rates <- function() {
 
   DT <- prepare_uis_data(files)
 
-  DT[, age_group := sub("_[^_]+$", "", indicator)]
-  DT[, age_group := fcase(
-    age_group == "youth", "15-24",
-    age_group == "adult", "25-64"
+  DT[, ageGroup := sub("_[^_]+$", "", indicator)]
+  DT[, ageGroup := fcase(
+    ageGroup == "youth", "15-24",
+    ageGroup == "adult", "25-64"
   )]
 
-  DT[, indicator := NULL]
+  DT[, `:=`(indicator = NULL, indicatorId = NULL, qualifier = NULL, magnitude = NULL)]
 
   DT
 }
 
 load_owid_gpi_data <- function() {
   files <- list(
-    "Pre-primary"     = "owid_school_enrollment_rates.csv",
     "Primary"         = "owid_gross_enrolment_primary.csv",
     "Lower secondary" = "owid_gross_enrolment_lower_secondary.csv",
     "Upper secondary" = "owid_gross_enrolment_upper_secondary.csv",
@@ -86,19 +83,20 @@ load_owid_gpi_data <- function() {
   DT <- rbindlist(lapply(names(files), function(level) {
     dt <- fread(here("data", "raw", files[[level]]))
     cols <- names(dt)
-    col_fe <- grep("fe", cols, ignore.case = TRUE, value = TRUE)
-    col_ma <- setdiff(cols[4:5], col_fe)
+    col_female <- grep("fe", cols, ignore.case = TRUE, value = TRUE)
+    col_male <- setdiff(cols[4:5], col_female)
 
-    setnames(dt, c(cols[1:2], col_fe, col_ma), c("geoUnit", "geoCode", "Female", "Male"))
+    setnames(dt, c(cols[1:2], col_female, col_male), c("entity", "code", "female", "male"))
     dt[, level := level]
     dt
   }), fill = TRUE)
 
-  DT[, value := Female / Male]
-  DT[, country := countrycode(geoCode, origin = "iso3c", destination = "country.name")]
+  DT[, value := female / male]
+  DT[, `:=`(female = NULL, male = NULL, entity = NULL)]
+  DT[, country := countrycode(code, origin = "iso3c", destination = "country.name")]
   DT[, educationLevel := factor(level, levels = c(
     "Pre-primary", "Primary", "Lower secondary", "Upper secondary", "Tertiary"
   ))]
 
-  DT[, .(geoCode, country, year, educationLevel, value)]
+  DT[, .(code, country, year, educationLevel, value)]
 }
