@@ -32,13 +32,13 @@ plot_domestic_work_region <- function(data) {
   )]
   dt <- dt[!is.na(female) & !is.na(male)]
 
-  # Schritt 1: Mittelwert je Land über alle verfügbaren Jahre
+  # Mittelwert je Land über alle verfügbaren Jahre
   dt_country <- dt[, .(
     female = mean(female, na.rm = TRUE),
     male   = mean(male,   na.rm = TRUE)
   ), by = .(country, region)]
 
-  # Schritt 2: Median der Ländermittelwerte je Region
+  # Median der Ländermittelwerte je Region
   dt_region <- dt_country[, .(
     female_med  = median(female, na.rm = TRUE),
     male_med    = median(male,   na.rm = TRUE),
