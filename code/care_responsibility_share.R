@@ -1,23 +1,13 @@
-# We know utlize a ILOSTAT dataset that has more data points to analyze the
-# difference of care responsibilities in specific countries and along the
-# time line. We utilize facet wrapping of line plot portraying values given in data.
-
+library(here)
 
 # load ILOSTAT data that gives values of "among all people outside labour force,
 # what percentage says it is due to care responsibilities by gender and country.
-care_responsibilities_share <- read.csv("data/raw/care_responsbility_share.csv.gz")
-
-# We first interpret which country has most values.
-dt <- as.data.table(care_responsibilities_share)
-dt[sex.label %in% c("Male", "Female") & !is.na(obs_value),
-  .(n_years = uniqueN(time)),
-  by = ref_area.label
-][order(-n_years)] |> head(30)
-
+load_care_resp_share_data <- function(data) {
+  fread(here("data", "raw", "care_responsbility_share.csv.gz"))
+}
 
 # plot and facet wrap.
-plot_care_share_facet <- function(data) {
-  dt <- as.data.table(data)
+plot_care_share_facet <- function(dt) {
   dt <- dt[, .(
     country = ref_area.label,
     year    = time,
@@ -43,7 +33,7 @@ plot_care_share_facet <- function(data) {
   dt[, country := country_map[country]]
   dt[, country := factor(country, levels = unname(country_map))]
   dt[, sex := factor(ifelse(sex == "Female", "Women", "Men"),
-    levels = c("Women", "Men")
+                     levels = c("Women", "Men")
   )]
 
   ggplot(dt, aes(x = year, y = value, color = sex, group = sex)) +
@@ -71,16 +61,8 @@ plot_care_share_facet <- function(data) {
     )
 }
 
-# facet wrapped graphic
-plot_care_share_facet(care_responsibilities_share)
-
-
-# Let us analyze the gap in care responsibilities between genders for
-# extreme cases. Which countries show clear inequality in share towards women
-# and which don't ?
-
-plot_care_gap_ranking <- function(data) {
-  dt <- as.data.table(data)[
+plot_care_gap_ranking <- function(dt) {
+  dt <- dt[
     sex.label %in% c("Male", "Female") & !is.na(obs_value),
     .(country = ref_area.label, year = time, sex = sex.label, value = obs_value)
   ]
@@ -98,7 +80,7 @@ plot_care_gap_ranking <- function(data) {
   ggplot(dt_plot, aes(x = reorder(country, gap), y = gap, fill = group)) +
     geom_col(width = 0.7) +
     geom_text(aes(label = round(gap, 1)),
-      hjust = -0.2, size = 3, color = "grey30"
+              hjust = -0.2, size = 3, color = "grey30"
     ) +
     coord_flip() +
     scale_fill_manual(values = c("Top 5 Largest Gap" = "red", "Bottom 5 Smallest Gap" = "steelblue")) +
@@ -120,11 +102,6 @@ plot_care_gap_ranking <- function(data) {
     )
 }
 
-# plot bar graph
-plot_care_gap_ranking(care_responsibilities_share)
-
-
-# Now lets look at the gap amongst european countries (discuss if we should include)
 plot_care_gap_ranking_europe <- function(data) {
   europe <- c(
     "Albania", "Austria", "Belarus", "Belgium", "Bosnia and Herzegovina",
@@ -155,7 +132,7 @@ plot_care_gap_ranking_europe <- function(data) {
   ggplot(dt_plot, aes(x = reorder(country, gap), y = gap, fill = group)) +
     geom_col(width = 0.7) +
     geom_text(aes(label = round(gap, 1)),
-      hjust = -0.2, size = 3, color = "grey30"
+              hjust = -0.2, size = 3, color = "grey30"
     ) +
     coord_flip() +
     scale_fill_manual(values = c("Top 5 Largest Gap" = "red", "Bottom 5 Smallest Gap" = "steelblue")) +
@@ -177,9 +154,83 @@ plot_care_gap_ranking_europe <- function(data) {
     )
 }
 
-# plot bar graph
-plot_care_gap_ranking_europe(care_responsibilities_share)
+plot_care_share_gii_correlation <- function(dt) {
+  gii <- fread(here("data", "raw", "owid_gii.csv"))
 
+  dt.crs <- dt[, .(
+    country = ref_area.label,
+    year    = time,
+    sex     = sex.label,
+    value   = obs_value
+  )]
+  dt.crs <- dt.crs[sex %in% c("Male", "Female") & !is.na(value)]
+
+  dt_country <- dt.crs[, .(
+    value = mean(value, na.rm = TRUE)
+  ), by = .(country, sex)]
+
+  dt_wide <- dcast(dt_country, country ~ sex, value.var = "value")
+  dt_wide[, gap := Female - Male]
+  dt_wide <- dt_wide[!is.na(Female) & !is.na(Male)]
+  dt_wide <- dt_wide[!grepl("Egypt", country)]
+
+  dt_gii <- as.data.table(gii)[!is.na(gii), .(
+    gii = mean(gii, na.rm = TRUE)
+  ), by = .(country = entity)]
+
+  merged <- merge(dt_wide, dt_gii, by = "country")
+
+  # ── Correlation ───────────────────────────────────────────────────────────────
+  pearson <- round(cor(merged$gii, merged$gap, use = "complete.obs"), 3)
+  spearman <- round(cor(merged$gii, merged$gap, method = "spearman", use = "complete.obs"), 3)
+
+  cat("Pearson:  ", pearson, "\n")
+  cat("Spearman: ", spearman, "\n")
+  cat("N:        ", nrow(merged), "\n")
+
+  # ── Scatterplot ───────────────────────────────────────────────────────────────
+  ggplot(merged, aes(x = gii, y = gap)) +
+    geom_point(size = 2.5, alpha = 0.6, color = "steelblue") +
+    geom_smooth(
+      method    = "loess",
+      se        = TRUE,
+      color     = "black",
+      linewidth = 0.8,
+      alpha     = 0.15
+    ) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
+    annotate(
+      "text",
+      x = 0.95,
+      y = max(merged$gap, na.rm = TRUE),
+      label = paste0("Pearson:  ", pearson, "\nSpearman: ", spearman),
+      hjust = 1, vjust = 1,
+      size = 3.2,
+      color = "grey20"
+    ) +
+    scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
+    labs(
+      title = "Zusammenhang zwischen GII und Gender Gap in Sorgepflichten",
+      subtitle = paste0(
+        "Ein Punkt = ein Land | Mittelwert \u00FCber verf\u00FCgbare Jahre | n = ",
+        nrow(merged), " L\u00E4nder"
+      ),
+      x = "Gender Inequality Index (GII) \u2013 h\u00F6here Werte = mehr Ungleichheit",
+      y = "Gender Gap (Frauen \u2212 M\u00E4nner, %)",
+      caption = paste0(
+        "Quelle: ILOSTAT, OWID/UNDP. ",
+        "LOESS-Gl\u00E4ttung mit 95%-Konfidenzband. ",
+        "\u00C4gypten ausgeschlossen (extremer Ausrei\u00DFer)."
+      )
+    ) +
+    theme_minimal(base_size = 11) +
+    theme(
+      plot.title       = element_text(face = "bold", size = 13),
+      plot.subtitle    = element_text(color = "grey", size = 9),
+      plot.caption     = element_text(color = "grey", size = 7),
+      panel.grid.minor = element_blank()
+    )
+}
 
 ### Ignore this. Research purpose only.
 
@@ -218,17 +269,3 @@ plot_care_share_trend <- function(data, country_name) {
       legend.position = "top"
     )
 }
-
-dt <- as.data.table(care_responsibilities_share)
-dt[sex.label %in% c("Male", "Female") & !is.na(obs_value),
-  .N,
-  by = ref_area.label
-][order(-N)] |> head(50)
-
-# use countries with long time series
-plot_care_share_trend(care_responsibilities_share, "South Africa")
-plot_care_share_trend(care_responsibilities_share, "Chile")
-plot_care_share_trend(care_responsibilities_share, "Australia")
-plot_care_share_trend(care_responsibilities_share, "Canada")
-
-###

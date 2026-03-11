@@ -1,17 +1,12 @@
-# In this task, I utilize the OWID data for percentage of day used on unpaid and domestic work.
-# Weights are not used as we are dealing with sparse data where not all countries at all times
-# are covered. We simply want to identify if there is a differnce in amount of care work between
-# male and female. We take the mean value across all years for each country and then the median
-# from the means in each continent and plot a bar graph to identify the differnce.
-# A more numerical analysis is done within the gt table with gaps and ratios.
-
 library(ggplot2)
 library(readr)
 library(data.table)
 library(gt)
+library(here)
 
-# load OWID with values of % of day used in care and domestic work.
-owid_domestic_work_time <- read_csv("data/raw/owid_domestic_work_time.csv")
+load_domestic_work_time_data <- function() {
+  fread(here("data", "raw", "owid_domestic_work_time.csv"))
+}
 
 # plot graphic function
 plot_domestic_work_region <- function(data) {
@@ -142,7 +137,3 @@ table_domestic_work_region <- function(data) {
       table.border.bottom.color  = "black"
     )
 }
-
-# execute function for owid_domestic_work_time
-plot_domestic_work_region(owid_domestic_work_time)
-table_domestic_work_region(owid_domestic_work_time)
