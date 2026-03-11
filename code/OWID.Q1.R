@@ -27,42 +27,47 @@ plot_domestic_work_region <- function(data) {
   # calculate mean across all years by each country
   dt_country <- dt[, .(
     female = mean(female, na.rm = TRUE),
-    male   = mean(male,   na.rm = TRUE)
+    male   = mean(male, na.rm = TRUE)
   ), by = .(country, region)]
 
   # find regional median from means extracted.
   dt_region <- dt_country[, .(
     female_med  = median(female, na.rm = TRUE),
-    male_med    = median(male,   na.rm = TRUE),
+    male_med    = median(male, na.rm = TRUE),
     n_countries = uniqueN(country)
   ), by = region]
 
   # convert to long format so that each gender has a row for each region.
   dt_long <- melt(dt_region,
-                  id.vars       = c("region", "n_countries"),
-                  measure.vars  = c("female_med", "male_med"),
-                  variable.name = "sex",
-                  value.name    = "time_spent")
+    id.vars       = c("region", "n_countries"),
+    measure.vars  = c("female_med", "male_med"),
+    variable.name = "sex",
+    value.name    = "time_spent"
+  )
 
   # portray female before male
   dt_long[, sex := factor(ifelse(sex == "female_med", "Women", "Men"),
-                          levels = c("Women", "Men"))]
+    levels = c("Women", "Men")
+  )]
 
   # plot
   ggplot(dt_long, aes(x = reorder(region, -time_spent), y = time_spent, fill = sex)) +
     geom_col(position = "dodge", width = 0.7) +
     geom_text(aes(label = paste0(round(time_spent, 1), "%")),
-              position = position_dodge(width = 0.7),
-              vjust = -0.4, size = 2.8, color = "grey") +
+      position = position_dodge(width = 0.7),
+      vjust = -0.4, size = 2.8, color = "grey"
+    ) +
     scale_fill_manual(values = c("Women" = "red", "Men" = "blue")) +
     labs(
-      title    = "Unpaid Domestic Work by Region and Gender",
-      subtitle = paste0("Median of country means | ",
-                        uniqueN(dt$country), " countries | ",
-                        min(dt$year), "\u2013", max(dt$year)),
-      x       = NULL,
-      y       = "Time (% of day)",
-      fill    = "Gender",
+      title = "Unpaid Domestic Work by Region and Gender",
+      subtitle = paste0(
+        "Median of country means | ",
+        uniqueN(dt$country), " countries | ",
+        min(dt$year), "\u2013", max(dt$year)
+      ),
+      x = NULL,
+      y = "Time (% of day)",
+      fill = "Gender",
       caption = "Source: OWID. Country mean over available years, then regional median."
     ) +
     theme_minimal(base_size = 11) +
@@ -91,12 +96,12 @@ table_domestic_work_region <- function(data) {
 
   dt_country <- dt[, .(
     female = mean(female, na.rm = TRUE),
-    male   = mean(male,   na.rm = TRUE)
+    male   = mean(male, na.rm = TRUE)
   ), by = .(country, region)]
 
   dt_region <- dt_country[, .(
     Women     = round(median(female, na.rm = TRUE), 2),
-    Men       = round(median(male,   na.rm = TRUE), 2),
+    Men       = round(median(male, na.rm = TRUE), 2),
     Gap       = round(median(female - male, na.rm = TRUE), 2),
     Ratio     = round(median(female / male, na.rm = TRUE), 2),
     Countries = uniqueN(country)
@@ -119,8 +124,10 @@ table_domestic_work_region <- function(data) {
       Ratio     = "F/M Ratio",
       Countries = "No. of Countries"
     ) |>
-    tab_style(cell_text(weight = "bold"),
-              cells_body(rows = Gap == max(Gap))) |>
+    tab_style(
+      cell_text(weight = "bold"),
+      cells_body(rows = Gap == max(Gap))
+    ) |>
     tab_footnote(
       footnote  = "\u0394 Gap = median (Women) \u2212 median (Men) as % of day. Ratio = Women / Men.",
       locations = cells_column_labels(columns = Gap)

@@ -25,10 +25,10 @@ dt_gii <- as.data.table(gii)[!is.na(gii), .(
 merged <- merge(dt_wide, dt_gii, by = "country")
 
 # ── Correlation ───────────────────────────────────────────────────────────────
-pearson  <- round(cor(merged$gii, merged$gap, use = "complete.obs"), 3)
+pearson <- round(cor(merged$gii, merged$gap, use = "complete.obs"), 3)
 spearman <- round(cor(merged$gii, merged$gap, method = "spearman", use = "complete.obs"), 3)
 
-cat("Pearson:  ", pearson,  "\n")
+cat("Pearson:  ", pearson, "\n")
 cat("Spearman: ", spearman, "\n")
 cat("N:        ", nrow(merged), "\n")
 
@@ -45,22 +45,22 @@ ggplot(merged, aes(x = gii, y = gap)) +
   geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
   annotate(
     "text",
-    x     = 0.95,
-    y     = max(merged$gap, na.rm = TRUE),
+    x = 0.95,
+    y = max(merged$gap, na.rm = TRUE),
     label = paste0("Pearson:  ", pearson, "\nSpearman: ", spearman),
     hjust = 1, vjust = 1,
-    size  = 3.2,
+    size = 3.2,
     color = "grey20"
   ) +
   scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
   labs(
-    title    = "Zusammenhang zwischen GII und Gender Gap in Sorgepflichten",
+    title = "Zusammenhang zwischen GII und Gender Gap in Sorgepflichten",
     subtitle = paste0(
       "Ein Punkt = ein Land | Mittelwert \u00FCber verf\u00FCgbare Jahre | n = ",
       nrow(merged), " L\u00E4nder"
     ),
-    x       = "Gender Inequality Index (GII) \u2013 h\u00F6here Werte = mehr Ungleichheit",
-    y       = "Gender Gap (Frauen \u2212 M\u00E4nner, %)",
+    x = "Gender Inequality Index (GII) \u2013 h\u00F6here Werte = mehr Ungleichheit",
+    y = "Gender Gap (Frauen \u2212 M\u00E4nner, %)",
     caption = paste0(
       "Quelle: ILOSTAT, OWID/UNDP. ",
       "LOESS-Gl\u00E4ttung mit 95%-Konfidenzband. ",
