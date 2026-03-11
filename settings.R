@@ -94,23 +94,5 @@ config.dataset.urls <- list(
   list(
     url = "https://ourworldindata.org/grapher/school-enrolment.csv?v=1&csvType=full&useColumnShortNames=true&enrolment_type=gross_enrolment&level=tertiary&sex=sex_side_by_side",
     filename = "owid_gross_enrolment_tertiary.csv"
-  ),
-
-  # Literacy rate by sex and age group
-  list(
-    url = "https://api.uis.unesco.org/api/public/data/indicators/export?indicator=LR.AG15T24.M&start=2000&end=2024&indicatorMetadata=false&footnotes=false&version=20260224-aef8b145&format=csv",
-    filename = "uis_literacy_rate_youth_male.zip"
-  ),
-  list(
-    url = "https://api.uis.unesco.org/api/public/data/indicators/export?indicator=LR.AG15T24.F&start=2000&end=2024&indicatorMetadata=false&footnotes=false&version=20260224-aef8b145&format=csv",
-    filename = "uis_literacy_rate_youth_female.zip"
-  ),
-  list(
-    url = "https://api.uis.unesco.org/api/public/data/indicators/export?indicator=LR.AG25T64.M&start=2000&end=2024&indicatorMetadata=false&footnotes=false&version=20260224-aef8b145&format=csv",
-    filename = "uis_literacy_rate_adult_male.zip"
-  ),
-  list(
-    url = "https://api.uis.unesco.org/api/public/data/indicators/export?indicator=LR.AG25T64.F&start=2000&end=2024&indicatorMetadata=false&footnotes=false&version=20260224-aef8b145&format=csv",
-    filename = "uis_literacy_rate_adult_female.zip"
   )
 )

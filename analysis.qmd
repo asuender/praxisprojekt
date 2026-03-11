@@ -1,7 +1,8 @@
 ---
-title: "Analyse-Notebook"
+title: "Analysis notebook"
+subtitle: "Use this to add your intermediate data analysis, plots, etc."
 author: "Jinwook Bae, Miriam Haf, Xuchen Shen, Andreas Sünder"
-lang: de
+lang: en
 format: html
 ---
 
@@ -9,10 +10,8 @@ format: html
 source("source_all.R")
 download_data()
 
-COUNTRIES <- c("Germany", "Italy", "Sweden")
-COUNTRIES_FOR_LITERACY <- c("Thailand", "India", "Afghanistan")
-YEAR <- 2023
-YEAR_FOR_LITERACY <- 2020
+COUNTRIES_FOR_COMPLETION <- c("Austria", "Vietnam", "Tunisia", "Brazil")
+YEARS_FOR_COMPLETION <- c(2010, 2015, 2020)
 
 world <- ne_countries(scale = "medium", returnclass = "sf")
 ```
@@ -22,10 +21,8 @@ world <- ne_countries(scale = "medium", returnclass = "sf")
 ```{r}
 gii <- load_owid_gii_data()
 
-gii[order(-year), .N, by = year]
-
-gii.latest <- gii[year == max(year)]
-gii_world <- merge(world, gii.latest, by.x = "iso_a3", by.y = "code", all.x = TRUE)
+gii.latest <- gii[year == 2023]
+gii_world <- merge(world, gii.latest, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
 
 ggplot(gii_world) +
   geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
@@ -35,39 +32,45 @@ ggplot(gii_world) +
     limits = c(0, 1)
   ) +
   coord_sf(ylim = c(-56, 90)) +
-  theme_minimal() +
-  labs(title = "Gender Inequality Index, 2023")
+  labs(title = "Gender Inequality Index, 2023") +
+  theme_light() +
+  theme(axis.text = element_blank(), axis.ticks = element_blank())
 ```
 
 # Analysis of education data
 
-## Completion rates
+## Completion rates (observed data)
 
 ```{r}
 completion <- load_uis_completion_rates()
 
-# This will be removed from the final code, just check data availability
-# for individual years
-completion[order(-year), .N, by = year]
-
-# Global completion
-completion.global <- completion[year == 2022 & code == "SDG: World", value, by = .(indicator, sex)]
-ggplot(completion.global, aes(x = indicator, y = value, fill = sex)) +
+# Global completion rates, averaged across available countries
+completion.global <- completion[year == 2021][, .(value = mean(value)), by = .(educationLevel, sex)]
+ggplot(completion.global, aes(x = educationLevel, y = value, fill = sex)) +
   geom_bar(position = "dodge", stat = "identity") +
-  labs(title = "Global completion rates by gender, 2022")
+  labs(title = "Global completion rates by gender, 2021", x = "education level", y = "average completion rate") +
+  theme_light()
 
-# by country
-completion.countries <- completion[country %in% COUNTRIES]
-ggplot(completion.countries[year == 2020], aes(x = country, y = value, fill = sex)) +
+# Completion rates for selected countries
+completion.countries <- completion[country %in% COUNTRIES_FOR_COMPLETION & year == 2021]
+ggplot(completion.countries, aes(x = country, y = value, fill = sex)) +
   geom_col(position = "dodge") +
-  facet_wrap(~indicator, ncol = 1) +
-  labs(title = "Completion rates for selected countries, 2022")
+  facet_wrap(~educationLevel, ncol = 1) +
+  labs(title = "Completion rates for selected countries, 2022", y = "completion rate") +
+  theme_light()
 
 # over time (averaged over all countries)
-completion.global_time <- completion[code == "SDG: World"]
-ggplot(completion.global_time, aes(x = year, y = value, color = sex, linetype = indicator)) +
+completion.time <- completion[year %in% YEARS_FOR_COMPLETION,
+  .(educationLevel, country, sex, year, value, n = uniqueN(interaction(educationLevel, sex, year))),
+  by = countryCode][n == 3 * 2 * 3][, n := NULL][,
+  .(value = mean(value)), by = .(educationLevel, sex, year)]
+ggplot(completion.time, aes(x = year, y = value, color = sex, linetype = educationLevel)) +
   geom_line() +
-  labs(title = "Global completion rates over time")
+  geom_point() +
+  scale_x_continuous(breaks = YEARS_FOR_COMPLETION) +
+  scale_y_continuous(breaks = seq(65, 100, by = 5)) +
+  labs(title = "Average completion rates over time", subtitle = "Derived from selected countries with data availability across all years", y = "average completion rate") +
+  theme_light()
 ```
 
 ## Gender parity index
@@ -75,13 +78,11 @@ ggplot(completion.global_time, aes(x = year, y = value, color = sex, linetype = 
 ```{r}
 gpi <- load_owid_gpi_data()
 
-gpi[order(-year), .N, by = .(educationLevel, year)]
-
 # we outsource the repeating tasks for each education level
 # to avoid duplicated code segments
 plot_gpi_map <- function(data, level) {
   gpi_filtered <- data[year == 2020 & educationLevel == level]
-  world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "code", all.x = TRUE)
+  world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
 
   ggplot(world_merged) +
     geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
@@ -91,48 +92,16 @@ plot_gpi_map <- function(data, level) {
       limits = c(0.5, 1.5), oob = scales::squish
     ) +
     coord_sf(ylim = c(-56, 90)) +
-    theme_minimal() +
-    labs(title = paste("Gender Parity Index -", level, "Gross Enrollment Ratio"))
+    labs(title = paste("Gender Parity Index -", level, "education"), subtitle = "Expressed as the ratio between the GER of females and males") +
+    theme_light() +
+    theme(legend.position = "bottom", legend.key.width = unit(2, "cm"), legend.title = element_text(vjust = 0.75), axis.text = element_blank(), axis.ticks = element_blank())
 }
 
 plot_gpi_map(gpi, "Primary")
 plot_gpi_map(gpi, "Lower secondary")
 plot_gpi_map(gpi, "Upper secondary")
 plot_gpi_map(gpi, "Tertiary")
-```
 
-
-## Youth literacy
-
-```{r}
-literacy <- load_uis_literacy_rates()
-
-literacy[order(-year), .N, by = .(year, ageGroup)]
-
-literacy.countries <- literacy[country %in% COUNTRIES_FOR_LITERACY]
-
-# As mentioned by our adviser, we will skip regions for now
-# literacy.regions <- literacy[ageGroup == "15-24" & grepl("^UIS:", code)]
-# literacy.regions[, region := sub("^UIS: ", "", code)]
-
-literacy.gap.countries <- dcast(literacy.countries,
-  country + year + ageGroup ~ sex,
-  value.var = "value"
-)[, gap := male - female]
-literacy.gap.countries.latest <- literacy.gap.countries[year == YEAR_FOR_LITERACY]
-
-# per country (2020)
-ggplot(literacy.gap.countries.latest, aes(x = reorder(country, gap), y = gap)) +
-  geom_col() +
-  coord_flip() +
-  facet_wrap(~ageGroup) +
-  labs(x = NULL, y = "Gender gap (male - female, pp)") +
-  labs(title = "Gender gap in literacy rates, by country and age group")
-
-# over time
-ggplot(literacy.gap.countries, aes(x = year, y = gap, color = country)) +
-  geom_line() +
-  facet_wrap(~ageGroup) +
-  labs(title = "Gender literacy gap over time, by country and age group")
+# TODO: Visualize gender parity index over time and/or across selected countries
 ```
 
