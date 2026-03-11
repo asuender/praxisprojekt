@@ -38,6 +38,13 @@ config.dataset.urls <- list(
     url = "https://rplumber.ilo.org/data/indicator/?id=EAP_DWAP_SEX_AGE_RT_A&lang=en&type=label&format=.csv.gz&channel=ilostat",
     filename = "ilo_labour_force_participation.csv.gz"
   ),
+
+  #Labour Force Participation and Education
+  list(
+    url = "https://rplumber.ilo.org/data/indicator/?id=EAP_DWAP_SEX_EDU_RT_A&timefrom=1970&timeto=2025&type=label&format=.csv.gz",
+    filename = "ilo_labour_force_participation_and_education.csv.gz"
+  ),
+
   # World poppulation OWID
   list(
     url = "https://ourworldindata.org/grapher/population.csv?v=1&csvType=full&useColumnShortNames=true",
