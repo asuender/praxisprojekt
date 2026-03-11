@@ -60,4 +60,4 @@ labour_force_with_educ |> filter(str_detect(education, "Total"),
        x = "Year",
        y = "Labour Force Participation Rate in %",
        colour = "Biological Gender") +
-  scale_y_continuous(limits = c(0,70), breaks = seq(0,70,20))
+  scale_y_continuous(limits = c(0,70), breaks = seq(0,70,10))
