@@ -7,4 +7,61 @@ format: html
 
 ```{r setup, include=FALSE}
 source("source_all.R")
+download_data()
 ```
+
+# Analysis of Care Responsbility Share data
+
+We know utilize a ILOSTAT dataset that has more data points to analyze the
+difference of care responsibilities in specific countries and along the
+time line. We utilize facet wrapping of line plot portraying values given in data.
+
+```{r}
+care_responsibilities_share <- load_care_resp_share_data()
+
+# We first interpret which country has most values.
+care_responsibilities_share[sex.label %in% c("Male", "Female") & !is.na(obs_value),
+   .(n_years = uniqueN(time)),
+   by = ref_area.label
+][order(-n_years)] |> head(30)
+
+# facet wrapped graphic
+plot_care_share_facet(care_responsibilities_share)
+
+# Let us analyze the gap in care responsibilities between genders for
+# extreme cases. Which countries show clear inequality in share towards women
+# and which don't ?
+
+plot_care_gap_ranking(care_responsibilities_share)
+
+# Now lets look at the gap amongst european countries (discuss if we should include)
+care_responsibilities_share[sex.label %in% c("Male", "Female") & !is.na(obs_value),
+   .N,
+   by = ref_area.label
+][order(-N)] |> head(50)
+
+# use countries with long time series
+plot_care_share_trend(care_responsibilities_share, "South Africa")
+plot_care_share_trend(care_responsibilities_share, "Chile")
+plot_care_share_trend(care_responsibilities_share, "Australia")
+plot_care_share_trend(care_responsibilities_share, "Canada")
+
+plot_care_share_gii_correlation(care_responsibilities_share)
+```
+
+# Analysis of Domestic Work Time data
+
+In this task, I utilize the OWID data for percentage of day used on unpaid and domestic work.
+Weights are not used as we are dealing with sparse data where not all countries at all times
+are covered. We simply want to identify if there is a differnce in amount of care work between
+male and female. We take the mean value across all years for each country and then the median
+from the means in each continent and plot a bar graph to identify the differnce.
+A more numerical analysis is done within the gt table with gaps and ratios.
+
+```{r}
+owid_domestic_work_time <- load_domestic_work_time_data()
+
+plot_domestic_work_region(owid_domestic_work_time)
+table_domestic_work_region(owid_domestic_work_time)
+```
+
