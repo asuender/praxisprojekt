@@ -51,3 +51,13 @@ labour_force_total_2024 |> filter(when_any(country == "Tanzania, United Republic
         y = "Labour Force Participation Rate in %",
         fill = "Biological Gender") +
   scale_y_continuous(limits = c(0,90), breaks = seq(0,90,20))
+
+#Grafik - LFPR Männer vs. Frauen in Deutschland von 2014 bis 2024
+labour_force_with_educ |> filter(str_detect(education, "Total"),
+                                 country == "Germany", year >= 2014) |>
+  ggplot(aes(x = year, y = rate, colour = sex)) + geom_line() +
+  labs(title = "Labour Force Participation Rate in Germany between 2014 and 2024",
+       x = "Year",
+       y = "Labour Force Participation Rate in %",
+       colour = "Biological Gender") +
+  scale_y_continuous(limits = c(0,70), breaks = seq(0,70,20))
