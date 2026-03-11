@@ -26,7 +26,3 @@ Let's keep [`report.qmd`](./report.qmd) and [`presentation.qmd`](./presentation.
 Some of this will be (or already is) enforced by automatic workflows triggered on every pull request. They ensure that every new piece of code that gets integrated into the main branch adheres to the "rules" defined above.
 
 Please don't hesitate to give feedback to other people's code - "geben und nehmen".
-
-## Using AI
-
-You are free to use any form of artificial intelligence (LLMs, Coding agents, etc.) to the extent that it can be justified. If you happen to use it, **please use the [AI_USAGE.md](./AI_USAGE.md) file to declare it**.
