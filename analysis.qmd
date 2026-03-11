@@ -53,7 +53,7 @@ completion[order(-year), .N, by = year]
 # Global completion
 completion.global <- completion[year == 2022 & code == "SDG: World", value, by = .(indicator, sex)]
 ggplot(completion.global, aes(x = indicator, y = value, fill = sex)) +
-  geom_bar(position = "dodge", stat = "identity") + 
+  geom_bar(position = "dodge", stat = "identity") +
   labs(title = "Global completion rates by gender, 2022")
 
 # by country
@@ -116,7 +116,8 @@ literacy.countries <- literacy[country %in% COUNTRIES_FOR_LITERACY]
 # literacy.regions[, region := sub("^UIS: ", "", code)]
 
 literacy.gap.countries <- dcast(literacy.countries,
-  country + year + ageGroup ~ sex, value.var = "value"
+  country + year + ageGroup ~ sex,
+  value.var = "value"
 )[, gap := male - female]
 literacy.gap.countries.latest <- literacy.gap.countries[year == YEAR_FOR_LITERACY]
 
@@ -124,14 +125,14 @@ literacy.gap.countries.latest <- literacy.gap.countries[year == YEAR_FOR_LITERAC
 ggplot(literacy.gap.countries.latest, aes(x = reorder(country, gap), y = gap)) +
   geom_col() +
   coord_flip() +
-  facet_wrap(~ ageGroup) +
+  facet_wrap(~ageGroup) +
   labs(x = NULL, y = "Gender gap (male - female, pp)") +
   labs(title = "Gender gap in literacy rates, by country and age group")
 
 # over time
 ggplot(literacy.gap.countries, aes(x = year, y = gap, color = country)) +
   geom_line() +
-  facet_wrap(~ ageGroup) +
+  facet_wrap(~ageGroup) +
   labs(title = "Gender literacy gap over time, by country and age group")
 ```
 
