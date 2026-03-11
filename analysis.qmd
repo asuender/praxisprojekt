@@ -62,8 +62,11 @@ ggplot(completion.countries, aes(x = country, y = value, fill = sex)) +
 # over time (averaged over all countries)
 completion.time <- completion[year %in% YEARS_FOR_COMPLETION,
   .(educationLevel, country, sex, year, value, n = uniqueN(interaction(educationLevel, sex, year))),
-  by = countryCode][n == 3 * 2 * 3][, n := NULL][,
-  .(value = mean(value)), by = .(educationLevel, sex, year)]
+  by = countryCode
+][n == 3 * 2 * 3][, n := NULL][,
+  .(value = mean(value)),
+  by = .(educationLevel, sex, year)
+]
 ggplot(completion.time, aes(x = year, y = value, color = sex, linetype = educationLevel)) +
   geom_line() +
   geom_point() +
