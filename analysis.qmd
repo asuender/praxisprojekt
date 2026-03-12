@@ -10,10 +10,10 @@ format: html
 source("source_all.R")
 download_data()
 
-COUNTRIES_FOR_COMPLETION <- c("Austria", "Vietnam", "Tunisia", "Brazil")
-YEARS_FOR_COMPLETION <- c(2010, 2015, 2020)
-
-world <- ne_countries(scale = "medium", returnclass = "sf")
+# COUNTRIES_FOR_COMPLETION <- c("Austria", "Vietnam", "Tunisia", "Brazil")
+# YEARS_FOR_COMPLETION <- c(2010, 2015, 2020)
+# 
+# world <- ne_countries(scale = "medium", returnclass = "sf")
 ```
 
 # Analysis of generic inequality data
@@ -123,8 +123,11 @@ care_responsibilities_share[sex.label %in% c("Male", "Female") & !is.na(obs_valu
    by = ref_area.label
 ][order(-n_years)] |> head(30)
 
-# facet wrapped graphic
+# facet wrapped graphic (for presentation)
 plot_care_share_facet(care_responsibilities_share)
+
+# dumbell plot (for presentation)
+plot_care_country_dumbbell(care_responsibilities_share)
 
 # Let us analyze the gap in care responsibilities between genders for
 # extreme cases. Which countries show clear inequality in share towards women
@@ -159,8 +162,8 @@ A more numerical analysis is done within the gt table with gaps and ratios.
 ```{r}
 owid_domestic_work_time <- load_domestic_work_time_data()
 
+# for presentation
 plot_domestic_work_region(owid_domestic_work_time)
-table_domestic_work_region(owid_domestic_work_time)
 ```
 
 # Analysis of Labour Force Participation data
