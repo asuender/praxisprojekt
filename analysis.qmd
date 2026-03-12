@@ -74,7 +74,10 @@ ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
   labs(title = "Completion rates for selected countries over time", subtitle = "Averaged across primary, lower secondary, and upper secondary education", x = "Year", y = "Average completion rate", color = "Sex") +
   theme_light()
 
-# over time (averaged over all countries)
+# Completion rates over time (averaged over all countries)
+# the code below makes sure that before averaging, we only select those countries
+# that have complete data for 2010, 2015, and 2020 (called a "balanced panel").
+# Otherwise, calculating the average based on different populations would be inadmissible.
 completion.time <- completion[year %in% YEARS_FOR_COMPLETION,
   .(educationLevel, country, sex, year, value, n = uniqueN(interaction(educationLevel, sex, year))),
   by = countryCode
