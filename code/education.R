@@ -40,7 +40,7 @@ load_uis_completion_rates <- function() {
     educationLevel == "primary",   "Primary",
     educationLevel == "lower_sec", "Lower secondary",
     educationLevel == "upper_sec", "Upper secondary"
-  ), levels = c("Upper secondary", "Lower secondary", "Primary"))]
+  ), levels = c("Primary", "Lower secondary", "Upper secondary"))]
   DT <- DT[, if (.N == 2) .SD, by = .(country, year, educationLevel)]
 
   DT[, .(educationLevel, countryCode, country, sex, year, value)]

@@ -8,6 +8,7 @@ config.dataset.urls <- list(
     url = "https://rplumber.ilo.org/data/indicator/?id=EAR_EMTA_SEX_NB_A&lang=en&type=label&format=.csv.gz&channel=ilostat",
     filename = "ilo_avg_monthly_wages.csv.gz"
   ),
+
   # Unpaid care work
   list(
     url = "https://ourworldindata.org/grapher/female-to-male-ratio-of-time-devoted-to-unpaid-care-work.csv?v=1&csvType=full&useColumnShortNames=true",
@@ -33,6 +34,7 @@ config.dataset.urls <- list(
     url      = "https://ourworldindata.org/grapher/gender-inequality-index-from-the-human-development-report.csv?v=1&csvType=full&useColumnShortNames=true",
     filename = "owid_gii.csv"
   ),
+
   # Labour force participation
   list(
     url = "https://rplumber.ilo.org/data/indicator/?id=EAP_DWAP_SEX_AGE_RT_A&lang=en&type=label&format=.csv.gz&channel=ilostat",

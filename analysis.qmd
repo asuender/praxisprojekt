@@ -10,7 +10,8 @@ format: html
 source("source_all.R")
 download_data()
 
-COUNTRIES_FOR_COMPLETION <- c("Austria", "Vietnam", "Tunisia", "Brazil")
+COUNTRIES_FOR_COMPLETION <- c("Yemen", "Afghanistan", "Sweden", "Brazil")
+COUNTRIES_FOR_COMPLETION_LATEST <- c("Austria", "Vietnam", "Tunisia", "Brazil")
 YEARS_FOR_COMPLETION <- c(2010, 2015, 2020)
 
 world <- ne_countries(scale = "medium", returnclass = "sf")
@@ -45,18 +46,32 @@ ggplot(gii_world) +
 completion <- load_uis_completion_rates()
 
 # Global completion rates, averaged across available countries
-completion.global <- completion[year == 2021][, .(value = mean(value)), by = .(educationLevel, sex)]
-ggplot(completion.global, aes(x = educationLevel, y = value, fill = sex)) +
+completion.global.latest <- completion[year == 2021][, .(value = mean(value)), by = .(educationLevel, sex)]
+ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex)) +
   geom_bar(position = "dodge", stat = "identity") +
-  labs(title = "Global completion rates by gender, 2021", x = "education level", y = "average completion rate") +
+  labs(title = "Average completion rates by sex, 2021", x = "Education level", y = "Average completion rate", fill = "Sex") +
   theme_light()
 
-# Completion rates for selected countries
-completion.countries <- completion[country %in% COUNTRIES_FOR_COMPLETION & year == 2021]
-ggplot(completion.countries, aes(x = country, y = value, fill = sex)) +
+# Completion rates for selected countries (2021)
+# Might now be optional
+completion.countries.latest <- completion[country %in% COUNTRIES_FOR_COMPLETION_LATEST & year == 2021]
+ggplot(completion.countries.latest, aes(x = country, y = value, fill = sex)) +
   geom_col(position = "dodge") +
   facet_wrap(~educationLevel, ncol = 1) +
-  labs(title = "Completion rates for selected countries, 2022", y = "completion rate") +
+  labs(title = "Completion rates for selected countries, 2021", x = "Country", y = "Completion rate", fill = "Sex") +
+  theme_light()
+
+# Completion rates for other selected countries (based on what I found in the GII plot)
+# Fortunately, for all countries, there is data available for the same years
+# across all education levels
+# To make things easier, we take the mean value for both genders to and aggregate across
+# all education levels
+completion.countries <- completion[country %in% COUNTRIES_FOR_COMPLETION, .(value = mean(value)), by = .(country, year, sex)]
+ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~country, nrow = 2) +
+  labs(title = "Completion rates for selected countries over time", subtitle = "Averaged across primary, lower secondary, and upper secondary education", x = "Year", y = "Average completion rate", color = "Sex") +
   theme_light()
 
 # over time (averaged over all countries)
@@ -72,7 +87,7 @@ ggplot(completion.time, aes(x = year, y = value, color = sex, linetype = educati
   geom_point() +
   scale_x_continuous(breaks = YEARS_FOR_COMPLETION) +
   scale_y_continuous(breaks = seq(65, 100, by = 5)) +
-  labs(title = "Average completion rates over time", subtitle = "Derived from selected countries with data availability across all years", y = "average completion rate") +
+  labs(title = "Completion rates over time", subtitle = "Averaged across countries with complete data for 2010, 2015, and 2020", x = "Year", y = "Average completion rate", color = "Sex", linetype = "Education level") +
   theme_light()
 ```
 
@@ -95,7 +110,7 @@ plot_gpi_map <- function(data, level) {
       limits = c(0.5, 1.5), oob = scales::squish
     ) +
     coord_sf(ylim = c(-56, 90)) +
-    labs(title = paste("Gender Parity Index -", level, "education"), subtitle = "Expressed as the ratio between the GER of females and males") +
+    labs(title = paste("Gender Parity Index -", level, "education"), subtitle = "Ratio of female to male gross enrollment ratio") +
     theme_light() +
     theme(legend.position = "bottom", legend.key.width = unit(2, "cm"), legend.title = element_text(vjust = 0.75), axis.text = element_blank(), axis.ticks = element_blank())
 }
@@ -105,7 +120,7 @@ plot_gpi_map(gpi, "Lower secondary")
 plot_gpi_map(gpi, "Upper secondary")
 plot_gpi_map(gpi, "Tertiary")
 
-# TODO: Visualize gender parity index over time and/or across selected countries
+# TODO: Visualize gender parity index over time and/or across selected countries (optional)
 ```
 
 # Analysis of Care Responsbility Share data
@@ -209,7 +224,7 @@ plot_lfpr_countries_2024 <- function(data) {
     geom_bar(stat = "identity", position = "dodge") +
     labs(title = "Labour Force Participation Rate in 2024 by Gender",
          x = "Country",
-         y = "Labour Force Participation Rate in %",
+          y = "Labour Force Participation Rate in %",
          fill = "Biological Gender") +
     scale_y_continuous(limits = c(0,90), breaks = seq(0,90,20))
 }
@@ -232,10 +247,10 @@ labour_force_total_2024 |> filter(when_any(country == "Tanzania, United Republic
 labour_force_with_educ |> filter(str_detect(education, "Total"),
                                  country == "Germany", year >= 2014) |>
   ggplot(aes(x = year, y = rate, colour = sex)) + geom_line() +
-  labs(title = "Labour Force Participation Rate in Germany between 2014 and 2024",
+  labs(title = "Labour force participation rate in Germany, 2014-2024",
        x = "Year",
-       y = "Labour Force Participation Rate in %",
-       colour = "Biological Gender") +
+       y = "Labour force participation rate (%)",
+       colour = "Sex") +
   scale_y_continuous(limits = c(0,70), breaks = seq(0,70,10))
 ```
 
