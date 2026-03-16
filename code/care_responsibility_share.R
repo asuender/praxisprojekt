@@ -7,7 +7,8 @@ load_care_resp_share_data <- function(data) {
 }
 
 # plot and facet wrap.
-plot_care_share_facet <- function(dt) {
+plot_care_share_facet <- function(data) {
+  dt <- as.data.table(data)
   dt <- dt[, .(
     country = ref_area.label,
     year    = time,
@@ -40,7 +41,7 @@ plot_care_share_facet <- function(dt) {
     geom_line(linewidth = 1) +
     geom_point(size = 1.5) +
     scale_color_manual(values = c("Women" = "red", "Men" = "blue")) +
-    facet_wrap(~country, scales = "free_y", ncol = 3) +
+    facet_wrap(~ country, scales = "free_y", ncol = 3) +
     labs(
       title    = "Care Responsibilities as Reason for Labour Market Inactivity",
       subtitle = "Share of people outside the labour force due to care responsibilities (%) | from 2005",
@@ -60,6 +61,127 @@ plot_care_share_facet <- function(dt) {
       panel.spacing   = unit(1, "lines")
     )
 }
+
+
+# Country-level dot plot: Female vs Male care responsibility share
+# Most recent available year per country (with over 5 values), ordered by female share.
+# A dumbbell plot cleanly shows both absolute level and gap simultaneously.
+
+plot_care_country_dumbbell <- function(data, min_years = 5, n_countries = 20) {
+  dt <- as.data.table(data)[
+    sex.label %in% c("Male", "Female") & !is.na(obs_value),
+    .(country = ref_area.label, year = time, sex = sex.label, value = obs_value)
+  ]
+
+  # keep countries with at least min_years of data
+  dt_counts <- dt[, .(n_years = uniqueN(year)), by = country]
+  dt <- dt[country %in% dt_counts[n_years >= min_years, country]]
+
+  # take most recent year per country
+  dt_last <- dt[, .SD[which.max(year)], by = .(country, sex)]
+  dt_wide <- dcast(dt_last, country ~ sex, value.var = "value")
+  dt_wide <- dt_wide[!is.na(Female) & !is.na(Male)]
+  dt_wide[, gap := Female - Male]
+
+  # select top and bottom n_countries
+  setorder(dt_wide, gap)
+  selected <- c(head(dt_wide$country, n_countries / 2),
+                tail(dt_wide$country, n_countries / 2))
+  dt_plot <- dt_wide[country %in% selected]
+
+  # long format for ggplot
+  dt_long <- melt(dt_plot,
+                  id.vars       = c("country", "gap"),
+                  measure.vars  = c("Female", "Male"),
+                  variable.name = "sex",
+                  value.name    = "value")
+
+  dt_long[, sex := factor(sex, levels = c("Male", "Female"))]
+
+  ggplot() +
+    geom_segment(data = dt_plot,
+                 aes(x = Male, xend = Female,
+                     y = reorder(country, gap),
+                     yend = reorder(country, gap)),
+                 color = "grey70", linewidth = 0.8) +
+    geom_point(data = dt_long,
+               aes(x = value,
+                   y = reorder(country, gap),
+                   color = sex),
+               size = 3) +
+    geom_text(data = dt_plot,
+              aes(x = (Female + Male) / 2,
+                  y = reorder(country, gap),
+                  label = paste0("+", round(gap, 1))),
+              vjust = -0.7, size = 2.6, color = "grey40") +
+    scale_color_manual(values = c("Female" = "red", "Male" = "blue")) +
+    scale_x_continuous(
+      labels = function(x) paste0(x, "%"),
+      expand = expansion(mult = c(0.02, 0.08))
+    ) +
+    labs(
+      title    = "Gender Gap in Care Responsibilities by Country",
+      subtitle = paste0("Share outside labour force due to care (%) | Most recent year | ",
+                        "Top & bottom ", n_countries / 2, " countries by gap"),
+      x        = "Share outside labour force due to care responsibilities (%)",
+      y        = NULL,
+      color    = NULL,
+      caption  = "Source: ILOSTAT. Countries with fewer than 5 years of data excluded."
+    ) +
+    theme_minimal(base_size = 11) +
+    theme(
+      plot.title      = element_text(face = "bold", size = 13),
+      plot.subtitle   = element_text(color = "grey50", size = 9),
+      plot.caption    = element_text(color = "grey50", size = 7),
+      legend.position = "top",
+      axis.text.y     = element_text(size = 9),
+      panel.grid.major.y = element_line(color = "grey"),
+      panel.grid.major.x = element_line(color = "grey"),
+      panel.grid.minor   = element_blank()
+    ) +
+    scale_y_discrete(expand = expansion(add = c(0.5, 1.2)))
+}
+
+
+### Ignore from here (research purpose only)
+
+# for individual countries in facet
+plot_care_share_trend <- function(data, country_name) {
+  dt <- as.data.table(data)
+  dt <- dt[, .(
+    country = ref_area.label,
+    year    = time,
+    sex     = sex.label,
+    value   = obs_value
+  )]
+  dt <- dt[sex %in% c("Male", "Female")]
+  dt <- dt[!is.na(value)]
+  dt <- dt[country == country_name]
+
+  ggplot(dt, aes(x = year, y = value, color = sex, group = sex)) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 2) +
+    scale_color_manual(
+      values = c("Female" = "red", "Male" = "blue"),
+      labels = c("Frauen", "Männer")
+    ) +
+    labs(
+      title    = paste0("Sorgepflichten als Grund für Nichterwerbstätigkeit – ", country_name),
+      subtitle = "Anteil der Personen außerhalb der Erwerbsbevölkerung (%)",
+      x        = "Jahr",
+      y        = "Anteil (%)",
+      color    = NULL,
+      caption  = "Quelle: ILOSTAT."
+    ) +
+    theme_minimal(base_size = 11) +
+    theme(
+      plot.title      = element_text(face = "bold", size = 13),
+      plot.subtitle   = element_text(color = "grey", size = 9),
+      plot.caption    = element_text(color = "grey", size = 7),
+      legend.position = "top"
+    )
+}
+
 
 plot_care_gap_ranking <- function(dt) {
   dt <- dt[
