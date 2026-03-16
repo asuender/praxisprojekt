@@ -33,7 +33,7 @@ plot_care_share_facet <- function(dt) {
   dt[, country := country_map[country]]
   dt[, country := factor(country, levels = unname(country_map))]
   dt[, sex := factor(ifelse(sex == "Female", "Women", "Men"),
-                     levels = c("Women", "Men")
+    levels = c("Women", "Men")
   )]
 
   ggplot(dt, aes(x = year, y = value, color = sex, group = sex)) +
@@ -80,7 +80,7 @@ plot_care_gap_ranking <- function(dt) {
   ggplot(dt_plot, aes(x = reorder(country, gap), y = gap, fill = group)) +
     geom_col(width = 0.7) +
     geom_text(aes(label = round(gap, 1)),
-              hjust = -0.2, size = 3, color = "grey30"
+      hjust = -0.2, size = 3, color = "grey30"
     ) +
     coord_flip() +
     scale_fill_manual(values = c("Top 5 Largest Gap" = "red", "Bottom 5 Smallest Gap" = "steelblue")) +
@@ -132,7 +132,7 @@ plot_care_gap_ranking_europe <- function(data) {
   ggplot(dt_plot, aes(x = reorder(country, gap), y = gap, fill = group)) +
     geom_col(width = 0.7) +
     geom_text(aes(label = round(gap, 1)),
-              hjust = -0.2, size = 3, color = "grey30"
+      hjust = -0.2, size = 3, color = "grey30"
     ) +
     coord_flip() +
     scale_fill_manual(values = c("Top 5 Largest Gap" = "red", "Bottom 5 Smallest Gap" = "steelblue")) +
