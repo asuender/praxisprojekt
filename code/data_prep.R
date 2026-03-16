@@ -1,10 +1,7 @@
-owid <- read.csv("data/raw/ilo_avg_hourly_wages_usd.csv.gz")
-
-load_data <- function() {
-  # TODO: implement data loading
-}
 library(dplyr)
+library(tidyr)
 library(ggplot2)
+library(scales)
 
 data <- read.csv("data/raw/ilo_avg_hourly_wages_usd.csv.gz")
 
@@ -12,73 +9,134 @@ data_filtered <- data %>%
   filter(
     classif1.label == "Currency: U.S. dollars",
     sex.label %in% c("Male", "Female"),
-    time >=2010,
-    time <= 2025
+    time >= 2010,
+    time <= 2023
   )
 
-head(data)
+wage_wide <- data_filtered %>%
+  select(ref_area.label, time, sex.label, obs_value) %>%
+  pivot_wider(
+    names_from = sex.label,
+    values_from = obs_value
+  ) %>%
+  filter(!is.na(Male), !is.na(Female))
 
-male <- data_filtered %>%
-  filter(sex.label == "Male")
-female <- data_filtered %>%
-  filter(sex.label == "Female")
+wage_wide <- wage_wide %>%
+  mutate(
+    wage_gap = (Male - Female) / Male
+  )
 
-merged <- merge(
-  male,
-  female,
-  by = c("ref_area.label" , "time"),
-  suffixes = c("_male", "_female")
-)
+summary(wage_wide$wage_gap)
 
-merged$wage_gap <- (merged$obs_value_male - merged$obs_value_female) / merged$obs_value_male
 
-avg_gap <- merged %>%
+country_count <- wage_wide %>%
   group_by(time) %>%
-  summarise(wage_gap = mean(wage_gap, na.rm = TRUE))
+  summarise(
+    n_countries = n_distinct(ref_area.label),
+    .groups = "drop"
+  )
 
-head(merged)
+print(country_count)
 
-
-ggplot(avg_gap, aes(x = time, y = wage_gap)) +
-  geom_line(color = "blue" , linewidth = 1.2) +
-  geom_point(size = 2) +
+ggplot(country_count, aes(x = time, y = n_countries)) +
+  geom_line(linewidth = 1.2, color = "steelblue") +
+  geom_point(size = 2.5, color = "steelblue") +
   labs(
-    title = "Gender Wage Gap Over Time",
+    title = "Number of Countries in Dataset per Year",
     x = "Year",
-    y = "Gender Wage Gap"
+    y = "Number of Countries"
   ) +
-  scale_y_continuous(labels = scales::percent) +
-  theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme_minimal()
 
-avg_wage <-data_filtered %>%
-  group_by(sex.label) %>%
-  summarise(avg_wage = mean(obs_value, na.rm = TRUE))
 
-ggplot(avg_wage, aes(x = sex.label, y= avg_wage, fill =sex.label)) +
-  geom_col() +
+trend_gap <- wage_wide %>%
+  group_by(time) %>%
+  summarise(
+    median_wage_gap = median(wage_gap, na.rm = TRUE),
+    mean_wage_gap = mean(wage_gap, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+print(trend_gap)
+
+ggplot(trend_gap, aes(x = time, y = median_wage_gap)) +
+  geom_line(linewidth = 1.2, color = "steelblue") +
+  geom_point(size = 2.5, color = "steelblue") +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
   labs(
-    title = "Average Hourly Wage by Gender",
-    x = "Gender",
-    y = "Average Wage (USD)"
+    title = "Median Gender Wage Gap Over Time",
+    x = "Year",
+    y = "Median Wage Gap"
+  ) +
+  theme_minimal()
+
+
+year_change <- trend_gap %>%
+  arrange(time) %>%
+  mutate(
+    previous_year = lag(time),
+    change = median_wage_gap - lag(median_wage_gap),
+    abs_change = abs(change)
+  ) %>%
+  filter(!is.na(change)) %>%
+  arrange(desc(abs_change))
+
+print(year_change)
+
+
+largest_change <- year_change %>%
+  slice(1)
+
+print(largest_change)
+
+year1 <- largest_change$previous_year
+year2 <- largest_change$time
+
+cat("Largest change is between", year1, "and", year2, "\n")
+
+# =========================
+# 8. Keep only the two years with the largest change
+# =========================
+gap_selected <- wage_wide %>%
+  filter(time %in% c(year1, year2))
+
+
+country_change <- gap_selected %>%
+  select(ref_area.label, time, wage_gap) %>%
+  pivot_wider(names_from = time, values_from = wage_gap) %>%
+  filter(!is.na(.data[[as.character(year1)]]),
+         !is.na(.data[[as.character(year2)]])) %>%
+  mutate(
+    change = .data[[as.character(year2)]] - .data[[as.character(year1)]],
+    abs_change = abs(change)
+  ) %>%
+  arrange(desc(abs_change))
+
+print(country_change)
+
+
+top10 <- country_change %>%
+  slice(1:10)
+
+print(top10)
+
+# Plot Top 10 country changes
+# red   = increase
+# blue  = decrease
+
+ggplot(top10, aes(x = reorder(ref_area.label, change), y = change, fill = change > 0)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = c("TRUE" = "tomato", "FALSE" = "steelblue")) +
+  labs(
+    title = paste("Top 10 Countries Driving the Wage Gap Change (", year1, "–", year2, ")", sep = ""),
+    x = "Country",
+    y = "Change in Wage Gap"
   ) +
   theme_minimal() +
   guides(fill = "none")
 
-country_gap <- merged %>%
-  group_by(ref_area.label) %>%
-  summarise(wage_gap = mean(wage_gap, na.rm =TRUE)) %>%
-  arrange(desc(wage_gap)) %>%
-  slice(1:10)
+selected_country_count <- country_count %>%
+  filter(time %in% c(year1, year2))
 
-ggplot(country_gap, aes(x = reorder(ref_area.label, wage_gap), y =wage_gap)) +
-  geom_col(fill = "steelblue") +
-  coord_flip() +
-  scale_y_continuous(labels = scales::percent) +
-  labs(
-    title = "Top Countries by Gender Wage Gap",
-    x = "Country",
-    y = "Gender Wage Gap"
-  ) +
-  theme_minimal()
-
+print(selected_country_count)
