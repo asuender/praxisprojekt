@@ -1,3 +1,20 @@
+load_data <- function() {
+  # TODO: implement data loading
+}
+data <- read.csv("data/raw/wage_data.csv")
+head(data)
+data_gender <- data[data$sex.label %in% c("Male" , "Female") , ]
+male <- data_gender[data_gender$sex.label == "Male" , ]
+female <- data_gender[data_gender$sex.label == "Female" , ]
+merged <- merge(
+  male,
+  female,
+  by = c("ref_area.label" , "time"),
+  suffixes = c("_male", "_female")
+)
+merged$wage_gap <- (merged$obs_value_male - merged$obs_value_female) / merged$obs_value_male
+head(merged)
+
 library(dplyr)
 library(tidyr)
 library(ggplot2)

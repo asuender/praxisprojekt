@@ -1,10 +1,218 @@
 ---
-title: "Analyse-Notebook"
+title: "Analysis notebook"
+subtitle: "Use this to add your intermediate data analysis, plots, etc."
 author: "Jinwook Bae, Miriam Haf, Xuchen Shen, Andreas Sünder"
-lang: de
+lang: en
 format: html
 ---
 
 ```{r setup, include=FALSE}
 source("source_all.R")
+download_data()
+
+COUNTRIES_FOR_COMPLETION <- c("Yemen", "Afghanistan", "Sweden", "Brazil")
+COUNTRIES_FOR_COMPLETION_LATEST <- c("Austria", "Vietnam", "Tunisia", "Brazil")
+YEARS_FOR_COMPLETION <- c(2010, 2015, 2020)
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
 ```
+
+# Analysis of generic inequality data
+
+```{r}
+gii <- load_owid_gii_data()
+
+gii.latest <- gii[year == 2023]
+gii_world <- merge(world, gii.latest, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
+
+ggplot(gii_world) +
+  geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
+  scale_fill_distiller(
+    palette = "YlOrRd", direction = 1,
+    name = "GII", na.value = "grey80",
+    limits = c(0, 1)
+  ) +
+  coord_sf(ylim = c(-56, 90)) +
+  labs(title = "Gender Inequality Index, 2023") +
+  theme_light() +
+  theme(axis.text = element_blank(), axis.ticks = element_blank())
+```
+
+# Analysis of education data
+
+## Completion rates (observed data)
+
+```{r}
+completion <- load_uis_completion_rates()
+
+# Global completion rates, averaged across available countries
+completion.global.latest <- completion[year == 2021][, .(value = mean(value)), by = .(educationLevel, sex)]
+ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  labs(title = "Average completion rates by sex, 2021", x = "Education level", y = "Average completion rate", fill = "Sex") +
+  theme_light()
+
+# Completion rates for selected countries (2021)
+# Might now be optional
+completion.countries.latest <- completion[country %in% COUNTRIES_FOR_COMPLETION_LATEST & year == 2021]
+ggplot(completion.countries.latest, aes(x = country, y = value, fill = sex)) +
+  geom_col(position = "dodge") +
+  facet_wrap(~educationLevel, ncol = 1) +
+  labs(title = "Completion rates for selected countries, 2021", x = "Country", y = "Completion rate", fill = "Sex") +
+  theme_light()
+
+# Completion rates for other selected countries (based on what I found in the GII plot)
+# Fortunately, for all countries, there is data available for the same years
+# across all education levels
+# To make things easier, we take the mean value for both genders to and aggregate across
+# all education levels
+completion.countries <- completion[country %in% COUNTRIES_FOR_COMPLETION, .(value = mean(value)), by = .(country, year, sex)]
+ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~country, nrow = 2) +
+  labs(title = "Completion rates for selected countries over time", subtitle = "Averaged across primary, lower secondary, and upper secondary education", x = "Year", y = "Average completion rate", color = "Sex") +
+  theme_light()
+
+# Completion rates over time (averaged over all countries)
+# the code below makes sure that before averaging, we only select those countries
+# that have complete data for 2010, 2015, and 2020 (called a "balanced panel").
+# Otherwise, calculating the average based on different populations would be inadmissible.
+completion.time <- completion[year %in% YEARS_FOR_COMPLETION,
+  .(educationLevel, country, sex, year, value, n = uniqueN(interaction(educationLevel, sex, year))),
+  by = countryCode
+][n == 3 * 2 * 3][, n := NULL][,
+  .(value = mean(value)),
+  by = .(educationLevel, sex, year)
+]
+ggplot(completion.time, aes(x = year, y = value, color = sex, linetype = educationLevel)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = YEARS_FOR_COMPLETION) +
+  scale_y_continuous(breaks = seq(65, 100, by = 5)) +
+  labs(title = "Completion rates over time", subtitle = "Averaged across countries with complete data for 2010, 2015, and 2020", x = "Year", y = "Average completion rate", color = "Sex", linetype = "Education level") +
+  theme_light()
+```
+
+## Gender parity index
+
+```{r}
+gpi <- load_owid_gpi_data()
+
+# we outsource the repeating tasks for each education level
+# to avoid duplicated code segments
+plot_gpi_map <- function(data, level) {
+  gpi_filtered <- data[year == 2020 & educationLevel == level]
+  world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
+
+  ggplot(world_merged) +
+    geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
+    scale_fill_gradient2(
+      midpoint = 1, low = "#b2182b", mid = "#ffffbf", high = "#2166ac",
+      name = "GPI", na.value = "grey80",
+      limits = c(0.5, 1.5), oob = scales::squish
+    ) +
+    coord_sf(ylim = c(-56, 90)) +
+    labs(title = paste("Gender Parity Index -", level, "education"), subtitle = "Ratio of female to male gross enrollment ratio") +
+    theme_light() +
+    theme(legend.position = "bottom", legend.key.width = unit(2, "cm"), legend.title = element_text(vjust = 0.75), axis.text = element_blank(), axis.ticks = element_blank())
+}
+
+plot_gpi_map(gpi, "Primary")
+plot_gpi_map(gpi, "Lower secondary")
+plot_gpi_map(gpi, "Upper secondary")
+plot_gpi_map(gpi, "Tertiary")
+
+# TODO: Visualize gender parity index over time and/or across selected countries (optional)
+```
+
+# Analysis of Care Responsbility Share data
+
+We know utilize a ILOSTAT dataset that has more data points to analyze the
+difference of care responsibilities in specific countries and along the
+time line. We utilize facet wrapping of line plot portraying values given in data.
+
+```{r}
+care_responsibilities_share <- load_care_resp_share_data()
+
+# facet wrapped graphic (for presentation)
+plot_care_share_facet(care_responsibilities_share)
+
+# dumbell plot (for presentation)
+plot_care_country_dumbbell(care_responsibilities_share)
+
+# Let us analyze the gap in care responsibilities between genders for
+# extreme cases. Which countries show clear inequality in share towards women
+# and which don't ?
+
+plot_care_gap_ranking(care_responsibilities_share)
+
+# use countries with long time series
+plot_care_share_trend(care_responsibilities_share, "South Africa")
+plot_care_share_trend(care_responsibilities_share, "Chile")
+plot_care_share_trend(care_responsibilities_share, "Australia")
+plot_care_share_trend(care_responsibilities_share, "Canada")
+
+plot_care_share_gii_correlation(care_responsibilities_share)
+```
+
+# Analysis of Domestic Work Time data
+
+In this task, I utilize the OWID data for percentage of day used on unpaid and domestic work.
+Weights are not used as we are dealing with sparse data where not all countries at all times
+are covered. We simply want to identify if there is a differnce in amount of care work between
+male and female. We take the mean value across all years for each country and then the median
+from the means in each continent and plot a bar graph to identify the differnce.
+A more numerical analysis is done within the gt table with gaps and ratios.
+
+```{r}
+owid_domestic_work_time <- load_domestic_work_time_data()
+
+# for presentation
+plot_domestic_work_region(owid_domestic_work_time)
+```
+
+# Analysis of Labour Force Participation data
+
+```{r}
+labour_force_with_educ <- load_labour_force_with_educ_data()
+
+#First data cleaning for labour force participation rate
+labour_force_with_educ_cleaned <- prepare_lfpr_data(labour_force_with_educ)
+
+#Research on LFPR for women in year 2024
+labour_force_with_educ_cleaned %>% filter(sex == "Female") %>%
+  summarize(Median = median(rate), Mean =  mean(rate), Min = min(rate),
+            Max = max(rate))
+labour_force_with_educ_cleaned %>% filter(sex == "Female",
+                                  when_any(rate == 14.106, rate == 81.691))
+
+
+#Preparing data for first analysis
+lf_total_2024_comparison <-
+  prepare_lfpr_total_2024_comp(labour_force_with_educ_cleaned)
+
+#Graph: LFPR Male vs. Female in 2024 in five countries: GER, AUS, USA, IRN, TZA
+lf_total_2024_comparison %>% 
+  ggplot(aes(x = country, y = rate, fill = sex)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Labour Force Participation Rate in 2024 by Gender",
+        x = "Country",
+        y = "Labour Force Participation Rate in %",
+        fill = "Biological Gender") +
+  scale_y_continuous(limits = c(0,90), breaks = seq(0,90,20))
+
+#Preparing data for second analysis
+lf_GER_2010_to_2024 <- 
+  prepare_lfpr_GER_2010_to_2024(labour_force_with_educ_cleaned)
+
+#Graph: LFPR Male vs.Female in GER from 2010 until 2024
+lf_GER_2010_to_2024 %>%
+  ggplot(aes(x = year, y = rate, colour = sex)) + geom_line() +
+  labs(title = "Labour Force Participation Rate in Germany between 2010 and 2024",
+       x = "Year",
+       y = "Labour Force Participation Rate in %",
+       colour = "Biological Gender") +
+  scale_y_continuous(limits = c(0,70), breaks = seq(0,70,10))
+```
+
