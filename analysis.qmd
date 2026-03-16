@@ -13,7 +13,7 @@ download_data()
 # COUNTRIES_FOR_COMPLETION <- c("Austria", "Vietnam", "Tunisia", "Brazil")
 # YEARS_FOR_COMPLETION <- c(2010, 2015, 2020)
 # 
-# world <- ne_countries(scale = "medium", returnclass = "sf")
+world <- ne_countries(scale = "medium", returnclass = "sf")
 ```
 
 # Analysis of generic inequality data
