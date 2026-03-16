@@ -216,3 +216,40 @@ lf_GER_2010_to_2024 %>%
   scale_y_continuous(limits = c(0,70), breaks = seq(0,70,10))
 ```
 
+# Analysis of Gender Wage Gap data
+
+```{r}
+wage_gap <- load_wage_gap_data()
+```
+
+## Median wage gap over time
+
+```{r}
+trend_gap <- prepare_wage_gap_trend(wage_gap)
+plot_wage_gap_trend(trend_gap)
+```
+
+## Top 10 countries with highest wage gap
+
+```{r}
+latest_year <- max(wage_gap$time)
+top_countries <- prepare_wage_gap_top_countries(wage_gap, latest_year)
+plot_wage_gap_top_countries(top_countries, latest_year)
+```
+
+## Largest changes in wage gap over the full period
+
+```{r}
+first_year <- min(wage_gap$time)
+last_year <- max(wage_gap$time)
+change_full <- prepare_wage_gap_change(wage_gap, first_year, last_year)
+plot_wage_gap_change(change_full, first_year, last_year)
+```
+
+## Change in wage gap around the pandemic (2019-2020)
+
+```{r}
+change_1920 <- prepare_wage_gap_change(wage_gap, 2019, 2020)
+plot_wage_gap_change(change_1920, 2019, 2020)
+```
+
