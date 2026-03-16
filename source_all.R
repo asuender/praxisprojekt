@@ -1,5 +1,8 @@
 library(tidyverse)
 library(here)
+library(rnaturalearth)
+library(sf)
+library(countrycode)
 
 source("settings.R")
 lapply(
