@@ -117,12 +117,6 @@ time line. We utilize facet wrapping of line plot portraying values given in dat
 ```{r}
 care_responsibilities_share <- load_care_resp_share_data()
 
-# We first interpret which country has most values.
-care_responsibilities_share[sex.label %in% c("Male", "Female") & !is.na(obs_value),
-   .(n_years = uniqueN(time)),
-   by = ref_area.label
-][order(-n_years)] |> head(30)
-
 # facet wrapped graphic (for presentation)
 plot_care_share_facet(care_responsibilities_share)
 
@@ -134,12 +128,6 @@ plot_care_country_dumbbell(care_responsibilities_share)
 # and which don't ?
 
 plot_care_gap_ranking(care_responsibilities_share)
-
-# Now lets look at the gap amongst european countries (discuss if we should include)
-care_responsibilities_share[sex.label %in% c("Male", "Female") & !is.na(obs_value),
-   .N,
-   by = ref_area.label
-][order(-N)] |> head(50)
 
 # use countries with long time series
 plot_care_share_trend(care_responsibilities_share, "South Africa")
