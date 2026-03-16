@@ -24,11 +24,16 @@ download_data()
 ```
 
 ```{r data-prep, include=FALSE, cache=TRUE}
+# You can put any constant values here
 COUNTRIES_FOR_COMPLETION <- c("Yemen", "Afghanistan", "Sweden", "Brazil")
 COUNTRIES_FOR_COMPLETION_LATEST <- c("Austria", "Vietnam", "Tunisia", "Brazil")
 YEARS_FOR_COMPLETION <- c(2010, 2015, 2020)
 
 world <- ne_countries(scale = "medium", returnclass = "sf")
+
+gii <- load_owid_gii_data()
+gii.latest <- gii[year == 2023]
+gii_world <- merge(world, gii.latest, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
 
 completion <- load_uis_completion_rates()
 completion.global.latest <- completion[year == 2021][, .(value = mean(value)), by = .(educationLevel, sex)]
@@ -68,11 +73,6 @@ plot_gpi_map <- function(data, level) {
 ---
 
 ```{r gii}
-gii <- load_owid_gii_data()
-
-gii.latest <- gii[year == 2023]
-gii_world <- merge(world, gii.latest, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
-
 ggplot(gii_world) +
   geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
   scale_fill_distiller(
