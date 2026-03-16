@@ -3,12 +3,29 @@ library(checkmate)
 library(here)
 library(countrycode)
 
+#' Load OWID Gender Inequality Index data
+#'
+#' Reads the raw OWID GII CSV and standardises column names.
+#'
+#' @return A \code{data.table} with columns: country, countryCode, year, value
+#'   (the GII score).
 load_owid_gii_data <- function() {
   DT <- fread(here("data", "raw", "owid_gender_inequality_index.csv"))
   setnames(DT, c("entity", "code", "gii"), c("country", "countryCode", "value"))
   DT
 }
 
+#' Prepare raw UIS indicator data from ZIP archives
+#'
+#' Extracts and row-binds the \code{data.csv} files contained in each ZIP
+#' archive. Derives a \code{sex} factor from the list names and maps ISO-3
+#' country codes to readable country names via \pkg{countrycode}.
+#'
+#' @param files A named list where names encode \code{<indicator>_<sex>} and
+#'   values are filenames of ZIP archives located in \code{data/raw/}.
+#' @return A \code{data.table} with an \code{indicator} column (from list
+#'   names), \code{sex} factor, \code{countryCode}, \code{country}, and all
+#'   original CSV columns.
 prepare_uis_data <- function(files) {
   DT <- rbindlist(lapply(files, function(f) {
     fread(cmd = paste("unzip -p", here("data", "raw", f), "'*/data.csv'"))
@@ -23,6 +40,15 @@ prepare_uis_data <- function(files) {
   DT
 }
 
+#' Load UIS completion rates by education level and sex
+#'
+#' Reads six ZIP archives (primary, lower secondary, upper secondary - each for
+#' female and male) via \code{\link{prepare_uis_data}}, derives the education
+#' level from the indicator name, and keeps only country-year-level
+#' combinations where both sexes are present.
+#'
+#' @return A \code{data.table} with columns: educationLevel, countryCode,
+#'   country, sex, year, value (completion rate in percent).
 load_uis_completion_rates <- function() {
   files <- list(
     primary_female   = "uis_completion_rate_primary_female.zip",
@@ -40,12 +66,23 @@ load_uis_completion_rates <- function() {
     educationLevel == "primary",   "Primary",
     educationLevel == "lower_sec", "Lower secondary",
     educationLevel == "upper_sec", "Upper secondary"
-  ), levels = c("Upper secondary", "Lower secondary", "Primary"))]
+  ), levels = c("Primary", "Lower secondary", "Upper secondary"))]
   DT <- DT[, if (.N == 2) .SD, by = .(country, year, educationLevel)]
 
   DT[, .(educationLevel, countryCode, country, sex, year, value)]
 }
 
+#' Load OWID gross enrollment data and compute the Gender Parity Index
+#'
+#' Reads OWID gross enrollment CSVs for four education levels (primary, lower
+#' secondary, upper secondary, tertiary), identifies the female and male
+#' columns heuristically, and computes the GPI as \code{female / male}.
+#' Although OWID's data is also based on UIS, they modified certain columns
+#' during their own data cleaning process, which makes it necessary to handle
+#' that separately (hence we cannot use the \code{\link{prepare_uis_data}} function).
+#'
+#' @return A \code{data.table} with columns: educationLevel, countryCode,
+#'   country, year, value (GPI ratio).
 load_owid_gpi_data <- function() {
   files <- list(
     "Primary"         = "owid_gross_enrolment_primary.csv",
@@ -73,6 +110,15 @@ load_owid_gpi_data <- function() {
   DT[, .(educationLevel, countryCode, country, year, value)]
 }
 
+#' Load UIS literacy rates by age group and sex
+#'
+#' Reads four ZIP archives (youth and adult, each for female and male) via
+#' \code{\link{prepare_uis_data}}, maps indicator names to age-group labels
+#' ("15-24", "25-64"), and retains only country-year combinations where both
+#' sexes are present.
+#'
+#' @return A \code{data.table} with columns: countryCode, country, ageGroup,
+#'   sex, year, value (literacy rate in percent).
 load_uis_literacy_rates <- function() {
   files <- list(
     youth_male   = "uis_literacy_rate_youth_male.zip",

@@ -1,10 +1,12 @@
 ---
 title: "Gender Inequality"
-subtitle: "Statistisches Praktikum (LMU München)"
+subtitle: "Statistical project (LMU Munich)"
 author: "Jinwook Bae, Miriam Haf, Xuchen Shen, Andreas Sünder"
 date: today
 date-format: "D. MMMM YYYY"
-lang: de
+lang: en
+execute:
+  echo: false
 format:
   revealjs:
     theme: default
@@ -13,12 +15,177 @@ format:
     css: presentation.css
 ---
 
-# Einführung
+```{r setup, include=FALSE}
+# Put any `library()` calls (or similar here)
+# We can't put those into the setup block below, as the functions loaded by them
+# are not restored correctly when cached
+source("source_all.R")
+download_data()
+```
 
-# Terminologie
+```{r data-prep, include=FALSE, cache=TRUE}
+# You can put any constant values here
+COUNTRIES_FOR_COMPLETION <- c("Yemen", "Afghanistan", "Sweden", "Brazil")
+COUNTRIES_FOR_COMPLETION_LATEST <- c("Austria", "Vietnam", "Tunisia", "Brazil")
+YEARS_FOR_COMPLETION <- c(2010, 2015, 2020)
 
-# Datenanalyse
+world <- ne_countries(scale = "medium", returnclass = "sf")
 
-# Fragestellungen
+gii <- load_owid_gii_data()
+gii.latest <- gii[year == 2023]
+gii_world <- merge(world, gii.latest, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
 
-# Zusammenfassung und Diskussion
+completion <- load_uis_completion_rates()
+completion.global.latest <- completion[year == 2021][, .(value = mean(value)), by = .(educationLevel, sex)]
+completion.countries <- completion[country %in% COUNTRIES_FOR_COMPLETION, .(value = mean(value)), by = .(country, year, sex)]
+completion.countries.latest <- completion[country %in% COUNTRIES_FOR_COMPLETION_LATEST & year == 2021]
+completion.time <- completion[year %in% YEARS_FOR_COMPLETION,
+  .(educationLevel, country, sex, year, value, n = uniqueN(interaction(educationLevel, sex, year))),
+  by = countryCode
+][n == 3 * 2 * 3][, n := NULL][,
+  .(value = mean(value)),
+  by = .(educationLevel, sex, year)
+]
+
+gpi <- load_owid_gpi_data()
+# we outsource the repeating tasks for each education level
+# to avoid duplicated code segments
+plot_gpi_map <- function(data, level) {
+  gpi_filtered <- data[year == 2020 & educationLevel == level]
+  world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
+
+  ggplot(world_merged) +
+    geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
+    scale_fill_gradient2(
+      midpoint = 1, low = "#b2182b", mid = "#ffffbf", high = "#2166ac",
+      name = "GPI", na.value = "grey80",
+      limits = c(0.5, 1.5), oob = scales::squish
+    ) +
+    coord_sf(ylim = c(-56, 90)) +
+    labs(title = paste("Gender Parity Index -", level, "education"), subtitle = "Expressed as the ratio between the GER of females and males") +
+    theme_light() +
+    theme(legend.position = "bottom", legend.key.width = unit(2, "cm"), legend.title = element_text(vjust = 0.75), axis.text = element_blank(), axis.ticks = element_blank())
+}
+```
+
+# Motivation
+
+---
+
+```{r gii}
+ggplot(gii_world) +
+  geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
+  scale_fill_distiller(
+    palette = "YlOrRd", direction = 1,
+    name = "GII", na.value = "grey80",
+    limits = c(0, 1)
+  ) +
+  coord_sf(ylim = c(-56, 90)) +
+  labs(title = "Gender Inequality Index, 2023") +
+  theme_light() +
+  theme(axis.text = element_blank(), axis.ticks = element_blank())
+```
+
+
+## Questions
+
+- Are there any gender-specific differences in unpaid work, income or pay, and labor force participation?
+- How do these gender-specific differences vary across countries, and how have they evolved over time?
+- Is there a correlation between these differences and development-related indicators such as the HDI, the Democracy Index, or others?
+
+## Data sets
+
+Our analysis is based on data sets gathered from the following sources:
+
+- ILOSTAT ([https://ilostat.ilo.org/](https://ilostat.ilo.org/))
+- UNESCO Institute of Statistics ([https://databrowser.uis.unesco.org/](https://databrowser.uis.unesco.org/))
+- Our World in Data ([https://ourworldindata.org/](https://ourworldindata.org/))
+
+## Preliminary considerations
+
+- Single missing values were imputed using the average of the adjacent years
+
+<!-- TODO -->
+
+# Education
+
+---
+
+```{r}
+plot_gpi_map(gpi, "Primary")
+```
+
+---
+
+```{r}
+plot_gpi_map(gpi, "Lower secondary")
+```
+
+---
+
+```{r}
+plot_gpi_map(gpi, "Upper secondary")
+```
+
+---
+
+```{r}
+plot_gpi_map(gpi, "Tertiary")
+```
+
+---
+
+```{r}
+ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  labs(title = "Average completion rates by sex, 2021", x = "Education level", y = "Average completion rate", fill = "Sex") +
+  theme_light()
+```
+
+---
+
+```{r}
+ggplot(completion.time, aes(x = year, y = value, color = sex, linetype = educationLevel)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = YEARS_FOR_COMPLETION) +
+  scale_y_continuous(breaks = seq(65, 100, by = 5)) +
+  labs(title = "Completion rates over time", subtitle = "Averaged across countries with complete data for 2010, 2015, and 2020", x = "Year", y = "Average completion rate", color = "Sex", linetype = "Education level") +
+  theme_light()
+```
+
+---
+
+```{r}
+ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~country, nrow = 2) +
+  labs(title = "Completion rates for selected countries over time", subtitle = "Averaged across primary, lower secondary, and upper secondary education", x = "Year", y = "Average completion rate", color = "Sex") +
+  theme_light()
+```
+
+# Labor force participation
+
+<!-- TODO -->
+
+# Care work
+
+<!-- TODO -->
+
+# Income
+
+<!-- TODO -->
+
+# Conclusion
+
+## Summary
+
+<!-- TODO -->
+
+## Limitations
+
+- Missing values impede data aggregation on a global scale
+- Data shows limited availability across indicators examined
+
+# Thank you very much!
