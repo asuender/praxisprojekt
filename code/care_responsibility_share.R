@@ -159,6 +159,10 @@ plot_care_country_gap <- function(data, n_countries = 20) {
       value = obs_value)
   ]
 
+  # remove countries with only one year of data
+  dt_counts <- dt[, .(n_years = uniqueN(year)), by = country]
+  dt <- dt[country %in% dt_counts[n_years >= 2, country]]
+
   # most recent year where both sexes observed in same year, capped at 2023
   dt_paired <- dt[year <= 2023, if (all(c("Male", "Female") %in% sex)) .SD,
                   by = .(country, year)]
@@ -201,7 +205,8 @@ plot_care_country_gap <- function(data, n_countries = 20) {
       x        = "Gender gap (percentage points)",
       y        = NULL,
       caption  = paste0(
-        "Source: ILOSTAT. Most recent paired year between 2020 and 2023 used per country. ",
+        "Source: ILOSTAT. Countries with only one year of data excluded. ",
+        "Most recent paired year between 2020 and 2023 used per country. ",
         "2024 data excluded due to incomplete provisional releases. ",
         "Year shown in parentheses."
       )
