@@ -168,10 +168,21 @@ ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
 # Labor force participation
 
 <!-- TODO -->
+# Care Work
 
-# Care work
+## Differnces in Care Work {.smaller}
+```{r}
+plot_domestic_work_region(owid_domestic_work_time)
+```
+## Difference Amongst Countries and Time {.smaller}
+```{r}
+plot_care_share_facet(care_responsibilities_share)
+```
 
-<!-- TODO -->
+## Gender Gaps Amongst Countries {.smaller}
+```{r}
+plot_care_country_gap(care_responsibilities_share)
+```
 
 # Income
 

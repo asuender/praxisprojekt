@@ -138,8 +138,8 @@ care_responsibilities_share <- load_care_resp_share_data()
 # facet wrapped graphic (for presentation)
 plot_care_share_facet(care_responsibilities_share)
 
-# dumbell plot (for presentation)
-plot_care_country_dumbbell(care_responsibilities_share)
+# lollipop plot (for presentation)
+plot_care_country_gap(care_responsibilities_share)
 
 # Let us analyze the gap in care responsibilities between genders for
 # extreme cases. Which countries show clear inequality in share towards women

@@ -1,8 +1,10 @@
 library(here)
+library(data.table)
 
 # load ILOSTAT data that gives values of "among all people outside labour force,
 # what percentage says it is due to care responsibilities by gender and country.
-load_care_resp_share_data <- function(data) {
+
+load_care_resp_share_data <- function() {
   fread(here("data", "raw", "care_responsbility_share.csv.gz"))
 }
 
@@ -18,7 +20,6 @@ plot_care_share_facet <- function(data) {
   dt <- dt[sex %in% c("Male", "Female")]
   dt <- dt[!is.na(value)]
   dt <- dt[year >= 2005]
-
   country_map <- c(
     "Australia"                  = "Australia",
     "Austria"                    = "Austria",
@@ -34,9 +35,8 @@ plot_care_share_facet <- function(data) {
   dt[, country := country_map[country]]
   dt[, country := factor(country, levels = unname(country_map))]
   dt[, sex := factor(ifelse(sex == "Female", "Women", "Men"),
-    levels = c("Women", "Men")
+                     levels = c("Women", "Men")
   )]
-
   ggplot(dt, aes(x = year, y = value, color = sex, group = sex)) +
     geom_line(linewidth = 1) +
     geom_point(size = 1.5) +
@@ -61,6 +61,11 @@ plot_care_share_facet <- function(data) {
       panel.spacing   = unit(1, "lines")
     )
 }
+
+care_responsibilities_share <- load_care_resp_share_data()
+
+
+#####
 
 
 # Country-level dot plot: Female vs Male care responsibility share
@@ -142,6 +147,77 @@ plot_care_country_dumbbell <- function(data, min_years = 5, n_countries = 20) {
     scale_y_discrete(expand = expansion(add = c(0.5, 1.2)))
 }
 
+# this is a lollipop plot that compares gaps of inequality for
+# the most recent years for the top and bottom 10
+# countries in values. It also removes countries that have less than 5
+# data points for valid analysis.
+
+plot_care_country_gap <- function(data, n_countries = 20) {
+  dt <- as.data.table(data)[
+    sex.label %in% c("Male", "Female") & !is.na(obs_value),
+    .(country = ref_area.label, year = time, sex = sex.label,
+      value = obs_value)
+  ]
+
+  # most recent year where both sexes observed in same year, capped at 2023
+  dt_paired <- dt[year <= 2023, if (all(c("Male", "Female") %in% sex)) .SD,
+                  by = .(country, year)]
+  dt_last_year <- dt_paired[, .(last_year = max(year)), by = country]
+  dt_paired <- dt_paired[dt_last_year, on = "country"][year == last_year]
+
+  # keep only countries with most recent paired observation from 2020 or later
+  dt_paired <- dt_paired[year >= 2020]
+
+  # wide format and gap
+  dt_wide <- dcast(dt_paired, country + year ~ sex, value.var = "value")
+  dt_wide <- dt_wide[!is.na(Female) & !is.na(Male)]
+  dt_wide[, gap := Female - Male]
+
+  # top and bottom 10 by gap
+  setorder(dt_wide, gap)
+  selected <- c(head(dt_wide$country, n_countries / 2),
+                tail(dt_wide$country, n_countries / 2))
+  dt_plot <- dt_wide[country %in% selected]
+
+  # country label with year appended
+  dt_plot[, country_label := paste0(country, " (", year, ")")]
+
+  ggplot(dt_plot, aes(x = gap,
+                      y = reorder(country_label, gap),
+                      color = gap)) +
+    geom_vline(xintercept = 0, color = "grey40", linetype = "dashed") +
+    geom_point(size = 3) +
+    geom_segment(aes(x = 0, xend = gap,
+                     y = reorder(country_label, gap),
+                     yend = reorder(country_label, gap)),
+                 linewidth = 0.5, alpha = 0.5) +
+    scale_color_gradient(low = "#f5a623", high = "#c0392b") +
+    scale_x_continuous(labels = function(x) paste0(x, "%"),
+                       expand = expansion(mult = c(0.05, 0.08))) +
+    labs(
+      title    = "Gender Gap in Care Responsibilities by Country",
+      subtitle = paste0("Gap = Female minus Male share outside labour force due to care (%) | ",
+                        "Top & bottom 10 countries | Most recent paired year 2020–2023"),
+      x        = "Gender gap (percentage points)",
+      y        = NULL,
+      caption  = paste0(
+        "Source: ILOSTAT. Most recent paired year between 2020 and 2023 used per country. ",
+        "2024 data excluded due to incomplete provisional releases. ",
+        "Year shown in parentheses."
+      )
+    ) +
+    theme_minimal(base_size = 11) +
+    theme(
+      plot.title         = element_text(face = "bold", size = 13),
+      plot.subtitle      = element_text(color = "grey50", size = 9),
+      plot.caption       = element_text(color = "grey50", size = 7),
+      legend.position    = "none",
+      axis.text.y        = element_text(size = 8),
+      panel.grid.major.y = element_line(color = "grey92"),
+      panel.grid.major.x = element_line(color = "grey92"),
+      panel.grid.minor   = element_blank()
+    )
+}
 
 ### Ignore from here (research purpose only)
 
