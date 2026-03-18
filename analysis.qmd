@@ -225,17 +225,40 @@ lf_GER_2010_to_2024 %>%
 lf_GER_2010_to_2024 %>%
   ggplot(aes(x = year, y = rate, colour = sex)) + geom_line() + geom_point() +
   labs(title = "Labour Force Participation Rate in Germany between 2010 and 2024",
+       subtitle = "Zoomed in",
        x = "Year",
        y = "Labour Force Participation Rate in %",
        colour = "Biological Gender") +
   scale_color_manual(values = c("Female" = "red", "Male" = "blue")) +
   theme_light() 
 
-#Graph: LFPR Male vs. Female in 2024 by education
+#Graph: LFPR Male vs. Female in 2024 by education, Germany
 lf_2024_by_education %>% filter(country == "Germany") %>%
   ggplot(aes(x = country, y = rate, fill = sex)) + 
-  geom_bar(stat = "identity", position = "dodge") +
-  facet_wrap(~ education)
+  geom_bar(stat = "identity", position = "dodge") + 
+  labs(title = "Labour Force Participation Rate by Gender and Education Level",
+       subtitle = "Germany, 2024",
+        x = "Country",
+        y = "Labour Force Participation Rate in %",
+        fill = "Biological Gender") +
+  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
+  facet_wrap(~ education,
+             labeller = label_wrap_gen(width = 30)) +
+  theme_light()
+
+#Graph: LFPR Male vs. Female in 2024 by education, Iran
+lf_2024_by_education %>% filter(country == "Iran") %>%
+  ggplot(aes(x = country, y = rate, fill = sex)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  labs(title = "Labour Force Participation Rate by Gender and Education Level",
+       subtitle = "Iran, 2024",
+        x = "Country",
+        y = "Labour Force Participation Rate in %",
+        fill = "Biological Gender") +
+  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
+  facet_wrap(~ education,
+             labeller = label_wrap_gen(width = 30)) +
+  theme_light()
 ```
 
 # Analysis of Gender Wage Gap data
