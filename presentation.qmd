@@ -70,7 +70,7 @@ plot_gpi_map <- function(data, level) {
 
 # Motivation
 
----
+------------------------------------------------------------------------
 
 ```{r gii}
 ggplot(gii_world) +
@@ -86,54 +86,53 @@ ggplot(gii_world) +
   theme(axis.text = element_blank(), axis.ticks = element_blank())
 ```
 
-
 ## Questions
 
-- Are there any gender-specific differences in unpaid work, income or pay, and labor force participation?
-- How do these gender-specific differences vary across countries, and how have they evolved over time?
-- Is there a correlation between these differences and development-related indicators such as the HDI, the Democracy Index, or others?
+-   Are there any gender-specific differences in unpaid work, income or pay, and labor force participation?
+-   How do these gender-specific differences vary across countries, and how have they evolved over time?
+-   Is there a correlation between these differences and development-related indicators such as the HDI, the Democracy Index, or others?
 
 ## Data sets
 
 Our analysis is based on data sets gathered from the following sources:
 
-- ILOSTAT ([https://ilostat.ilo.org/](https://ilostat.ilo.org/))
-- UNESCO Institute of Statistics ([https://databrowser.uis.unesco.org/](https://databrowser.uis.unesco.org/))
-- Our World in Data ([https://ourworldindata.org/](https://ourworldindata.org/))
+-   ILOSTAT (<https://ilostat.ilo.org/>)
+-   UNESCO Institute of Statistics (<https://databrowser.uis.unesco.org/>)
+-   Our World in Data (<https://ourworldindata.org/>)
 
 ## Preliminary considerations
 
-- Single missing values were imputed using the average of the adjacent years
+-   Single missing values were imputed using the average of the adjacent years
 
 <!-- TODO -->
 
 # Education
 
----
+------------------------------------------------------------------------
 
 ```{r}
 plot_gpi_map(gpi, "Primary")
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r}
 plot_gpi_map(gpi, "Lower secondary")
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r}
 plot_gpi_map(gpi, "Upper secondary")
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r}
 plot_gpi_map(gpi, "Tertiary")
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r}
 ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex)) +
@@ -142,7 +141,7 @@ ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex))
   theme_light()
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r}
 ggplot(completion.time, aes(x = year, y = value, color = sex, linetype = educationLevel)) +
@@ -154,7 +153,7 @@ ggplot(completion.time, aes(x = year, y = value, color = sex, linetype = educati
   theme_light()
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r}
 ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
@@ -167,7 +166,71 @@ ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
 
 # Labor force participation
 
-<!-- TODO -->
+```{r}
+lf_total_2024_comparison %>% 
+  ggplot(aes(x = country, y = rate, fill = sex)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Labour Force Participation Rate in 2024 by Gender",
+        x = "Country",
+        y = "Labour Force Participation Rate in %",
+        fill = "Biological Gender") +
+  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
+  scale_y_continuous(limits = c(0,90), breaks = seq(0,90,20)) +
+  theme_light()
+```
+
+```{r}
+lf_GER_2010_to_2024 %>%
+  ggplot(aes(x = year, y = rate, colour = sex)) + geom_line() + geom_point() +
+  labs(title = "Labour Force Participation Rate in Germany between 2010 and 2024",
+       x = "Year",
+       y = "Labour Force Participation Rate in %",
+       colour = "Biological Gender") +
+  scale_color_manual(values = c("Female" = "red", "Male" = "blue")) +
+  scale_y_continuous(limits = c(0,70), breaks = seq(0,70,10)) + 
+  theme_light() 
+
+
+lf_GER_2010_to_2024 %>%
+  ggplot(aes(x = year, y = rate, colour = sex)) + geom_line() + geom_point() +
+  labs(title = "Labour Force Participation Rate in Germany between 2010 and 2024",
+       subtitle = "Zoomed in",
+       x = "Year",
+       y = "Labour Force Participation Rate in %",
+       colour = "Biological Gender") +
+  scale_color_manual(values = c("Female" = "red", "Male" = "blue")) +
+  theme_light() 
+```
+
+```{r}
+lf_2024_by_education %>% filter(country == "Germany") %>%
+  ggplot(aes(x = country, y = rate, fill = sex)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  labs(title = "Labour Force Participation Rate by Gender and Education Level",
+       subtitle = "Germany, 2024",
+        x = "Country",
+        y = "Labour Force Participation Rate in %",
+        fill = "Biological Gender") +
+  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
+  facet_wrap(~ education,
+             labeller = label_wrap_gen(width = 30)) +
+  theme_light()
+```
+
+```{r}
+lf_2024_by_education %>% filter(country == "Iran") %>%
+  ggplot(aes(x = country, y = rate, fill = sex)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  labs(title = "Labour Force Participation Rate by Gender and Education Level",
+       subtitle = "Iran, 2024",
+        x = "Country",
+        y = "Labour Force Participation Rate in %",
+        fill = "Biological Gender") +
+  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
+  facet_wrap(~ education,
+             labeller = label_wrap_gen(width = 30)) +
+  theme_light()
+```
 
 # Care work
 
@@ -185,7 +248,7 @@ ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
 
 ## Limitations
 
-- Missing values impede data aggregation on a global scale
-- Data shows limited availability across indicators examined
+-   Missing values impede data aggregation on a global scale
+-   Data shows limited availability across indicators examined
 
 # Thank you very much!
