@@ -58,7 +58,7 @@ prepare_lfpr_GER_2010_to_2024 <- function(data) {
 }
 
 
-#Function to prepare intermediata data for third analysis - LFPR by education level
+#Function to prepare intermediate data for third analysis - LFPR by education level
 prepare_lfpr_2024_by_education <- function(data) {
   data <- data %>% filter(year == 2024,
                           !str_detect(education, "Total|Not elsewhere"),
