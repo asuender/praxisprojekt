@@ -208,7 +208,7 @@ plot_care_lfp_correlation <- function(data, lfp_data) {
                         "n = ", nrow(merged), " countries"),
       x        = "Labour Force Participation gap (Male minus Female, pp)",
       y        = "Care inactivity gap (Women minus Men, pp)",
-      caption  = "Source: ILOSTAT. Data : Most recent paired year between 2020 and 2023 per country with more than 1 data point."
+      caption  = "Source: ILOSTAT. Data: Most recent paired year between 2020 and 2023 per country with more than 1 data point."
     ) +
     theme_minimal(base_size = 11) +
     theme(
