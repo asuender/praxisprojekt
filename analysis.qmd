@@ -141,6 +141,11 @@ plot_care_share_facet(care_responsibilities_share)
 # lollipop plot (for presentation)
 plot_care_country_gap(care_responsibilities_share)
 
+# correlation of care share and LFP (for presentation)
+plot_care_lfp_correlation(care_responsibilities_share, lfp)
+
+### NOT FOR PRESENTATION
+
 # Let us analyze the gap in care responsibilities between genders for
 # extreme cases. Which countries show clear inequality in share towards women
 # and which don't ?
