@@ -118,3 +118,11 @@ config.dataset.urls <- list(
     filename = "owid_gross_enrolment_tertiary.csv"
   )
 )
+
+theme_set(
+  theme_light() +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      plot.subtitle = element_text(hjust = 0.5)
+    )
+)

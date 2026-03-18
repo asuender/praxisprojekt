@@ -63,7 +63,6 @@ plot_gpi_map <- function(data, level) {
     ) +
     coord_sf(ylim = c(-56, 90)) +
     labs(title = paste("Gender Parity Index -", level, "education"), subtitle = "Expressed as the ratio between the GER of females and males") +
-    theme_light() +
     theme(legend.position = "bottom", legend.key.width = unit(2, "cm"), legend.title = element_text(vjust = 0.75), axis.text = element_blank(), axis.ticks = element_blank())
 }
 ```
@@ -82,7 +81,6 @@ ggplot(gii_world) +
   ) +
   coord_sf(ylim = c(-56, 90)) +
   labs(title = "Gender Inequality Index, 2023") +
-  theme_light() +
   theme(axis.text = element_blank(), axis.ticks = element_blank())
 ```
 
@@ -138,8 +136,7 @@ plot_gpi_map(gpi, "Tertiary")
 ```{r}
 ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex)) +
   geom_bar(position = "dodge", stat = "identity") +
-  labs(title = "Average completion rates by sex, 2021", x = "Education level", y = "Average completion rate", fill = "Sex") +
-  theme_light()
+  labs(title = "Average completion rates by sex, 2021", x = "Education level", y = "Average completion rate", fill = "Sex")
 ```
 
 ---
@@ -150,8 +147,7 @@ ggplot(completion.time, aes(x = year, y = value, color = sex, linetype = educati
   geom_point() +
   scale_x_continuous(breaks = YEARS_FOR_COMPLETION) +
   scale_y_continuous(breaks = seq(65, 100, by = 5)) +
-  labs(title = "Completion rates over time", subtitle = "Averaged across countries with complete data for 2010, 2015, and 2020", x = "Year", y = "Average completion rate", color = "Sex", linetype = "Education level") +
-  theme_light()
+  labs(title = "Completion rates over time", subtitle = "Averaged across countries with complete data for 2010, 2015, and 2020", x = "Year", y = "Average completion rate", color = "Sex", linetype = "Education level")
 ```
 
 ---
@@ -161,8 +157,7 @@ ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
   geom_line() +
   geom_point() +
   facet_wrap(~country, nrow = 2) +
-  labs(title = "Completion rates for selected countries over time", subtitle = "Averaged across primary, lower secondary, and upper secondary education", x = "Year", y = "Average completion rate", color = "Sex") +
-  theme_light()
+  labs(title = "Completion rates for selected countries over time", subtitle = "Averaged across primary, lower secondary, and upper secondary education", x = "Year", y = "Average completion rate", color = "Sex")
 ```
 
 # Labor force participation
