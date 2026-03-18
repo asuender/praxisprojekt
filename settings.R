@@ -120,9 +120,14 @@ config.dataset.urls <- list(
 )
 
 theme_set(
-  theme_light() +
+  theme_light(base_size = 14) +
     theme(
       plot.title = element_text(hjust = 0.5),
-      plot.subtitle = element_text(hjust = 0.5)
+      plot.subtitle = element_text(hjust = 0.5),
+      axis.title.x = element_text(margin = margin(t = 10)),
+      axis.title.y = element_text(margin = margin(r = 10)),
+      panel.border = element_rect(colour = "black", fill=NA, linewidth=1),
+      strip.background = element_blank(),
+      strip.text = element_text(color = "black")
     )
 )
