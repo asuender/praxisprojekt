@@ -3,7 +3,7 @@ title: "Gender Inequality"
 subtitle: "Statistical project (LMU Munich)"
 author: "Jinwook Bae, Miriam Haf, Xuchen Shen, Andreas Sünder"
 date: today
-date-format: "D. MMMM YYYY"
+date-format: "MMMM D, YYYY"
 lang: en
 execute:
   echo: false
@@ -100,7 +100,11 @@ ggplot(gii_world) +
 
 ## Research Questions
 
-1. Are there any gender-specific differences in unpaid work, income or pay, and labor force participation?
+1. Are there any gender-specific differences in:
+   i. **education**,
+   ii. **labor force participation**,
+   iii. **care work**, and
+   iv. **income**?
 2. How do these gender-specific differences vary across countries, and how have they evolved over time?
 3. Is there a correlation between these differences and development-related indicators such as the HDI, the Democracy Index, or others?
 
@@ -111,15 +115,6 @@ Our analysis is based on data sets gathered from the following sources:
 - ILOSTAT ([https://ilostat.ilo.org/](https://ilostat.ilo.org/))
 - UNESCO Institute of Statistics ([https://databrowser.uis.unesco.org/](https://databrowser.uis.unesco.org/))
 - Our World in Data ([https://ourworldindata.org/](https://ourworldindata.org/))
-
-## Scope
-
-In the following, we discuss gender-specific differences across these topics:
-
-- Education
-- Labor force participation
-- Care work
-- Income
 
 ## Methodology
 
