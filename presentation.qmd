@@ -202,7 +202,29 @@ ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
 
 # Care Work
 
-<!-- TODO -->
+## Differences in Care Work
+
+```{r}
+plot_domestic_work_region(owid_domestic_work_time)
+```
+
+## Care Responsibilities Keeping People Out of Work
+
+```{r}
+plot_care_share_facet(care_responsibilities_share)
+```
+
+## Gap in Care Responsibility Share Amongst Countries
+
+```{r}
+plot_care_country_gap(care_responsibilities_share)
+```
+
+## Labour Force Participation vs Care Responsibility Share
+
+```{r}
+plot_care_lfp_correlation(care_responsibilities_share, lfp)
+```
 
 # Income
 

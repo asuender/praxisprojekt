@@ -8,6 +8,8 @@ load_domestic_work_time_data <- function() {
   fread(here("data", "raw", "owid_domestic_work_time.csv"))
 }
 
+owid_domestic_work_time <- load_domestic_work_time_data()
+
 # plot graphic function
 plot_domestic_work_region <- function(data) {
   dt <- as.data.table(data)[, .(
@@ -19,57 +21,77 @@ plot_domestic_work_region <- function(data) {
   )]
   dt <- dt[!is.na(female) & !is.na(male)]
 
-  # calculate mean across all years by each country
+  # country mean over all available years
   dt_country <- dt[, .(
     female = mean(female, na.rm = TRUE),
     male   = mean(male,   na.rm = TRUE)
   ), by = .(country, region)]
 
-  # find regional median from means extracted.
+  # regional median + IQR for both sexes + n
   dt_region <- dt_country[, .(
     female_med  = median(female, na.rm = TRUE),
+    female_q1   = quantile(female, 0.25, na.rm = TRUE),
+    female_q3   = quantile(female, 0.75, na.rm = TRUE),
     male_med    = median(male,   na.rm = TRUE),
+    male_q1     = quantile(male,  0.25, na.rm = TRUE),
+    male_q3     = quantile(male,  0.75, na.rm = TRUE),
     n_countries = uniqueN(country)
   ), by = region]
 
-  # compute F/M ratio per region
+  # ratio of medians (see caption note)
   dt_region[, ratio := round(female_med / male_med, 2)]
 
-  # create x-axis label with ratio shown below region name
-  dt_region[, region_label := paste0(region, "\nRatio: ", ratio, "x")]
+  # x-axis label: region name + ratio + n
+  dt_region[, region_label := paste0(region, "\nRatio: ", ratio, "x | n=", n_countries)]
 
-  # convert to long format so that each gender has a row for each region.
-  dt_long <- melt(dt_region,
-                  id.vars       = c("region", "region_label", "n_countries", "ratio"),
-                  measure.vars  = c("female_med", "male_med"),
-                  variable.name = "sex",
-                  value.name    = "time_spent")
+  # long format — one row per region x sex, carrying IQR bounds
+  dt_long <- melt(
+    dt_region,
+    id.vars      = c("region", "region_label", "n_countries", "ratio"),
+    measure.vars = list(
+      time_spent = c("female_med", "male_med"),
+      q1         = c("female_q1",  "male_q1"),
+      q3         = c("female_q3",  "male_q3")
+    ),
+    variable.name = "sex"
+  )
+  dt_long[, sex := factor(ifelse(sex == 1, "Women", "Men"), levels = c("Women", "Men"))]
 
-  # portray female before male
-  dt_long[, sex := factor(ifelse(sex == "female_med", "Women", "Men"),
-                          levels = c("Women", "Men"))]
-
-  # custom region order
+  # region order
   custom_order <- c("Asia", "Africa", "South America", "North America", "Oceania", "Europe")
-  dt_long[, region_label := factor(region_label,
-                                   levels = dt_region[match(custom_order, region), region_label])]
+  dt_long[, region_label := factor(
+    region_label,
+    levels = dt_region[match(custom_order, region), region_label]
+  )]
 
-  # plot
   ggplot(dt_long, aes(x = region_label, y = time_spent, fill = sex)) +
     geom_col(position = "dodge", width = 0.7) +
-    geom_text(aes(label = paste0(round(time_spent, 1), "%")),
-              position = position_dodge(width = 0.7),
-              vjust = -0.4, size = 2.8, color = "grey40") +
+    geom_errorbar(
+      aes(ymin = q1, ymax = q3),
+      position = position_dodge(width = 0.7),
+      width = 0.25,
+      linewidth = 0.5,
+      color = "black"
+    ) +
     scale_fill_manual(values = c("Women" = "red", "Men" = "blue")) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
     labs(
       title    = "Unpaid Domestic Work by Region and Gender",
-      subtitle = paste0("Median of country means | ",
-                        uniqueN(dt$country), " countries | ",
-                        min(dt$year), "\u2013", max(dt$year)),
+      subtitle = paste0(
+        "Median of country means | ",
+        uniqueN(dt$country), " countries | ",
+        min(dt$year), "\u2013", max(dt$year)
+      ),
       x       = NULL,
       y       = "Time (% of day)",
       fill    = "Gender",
-      caption = "Source: OWID. Country mean over available years, then regional median. F/M Ratio = Women / Men."
+      caption = paste0(
+        "Source: OWID. Country mean computed over all available years; regional median and IQR ",
+        "then derived from country means.\n",
+        "F/M Ratio = ratio of regional medians (not median of per-country ratios). ",
+        "n = number of countries per region. ",
+        "Error bars show IQR (Q1–Q3) of country means."
+      )
     ) +
     theme_minimal(base_size = 11) +
     theme(
@@ -82,6 +104,7 @@ plot_domestic_work_region <- function(data) {
     )
 }
 
+### Not to include but to analyze table
 
 # table graphic function
 # we may utilize this if necessary (in decision making).
