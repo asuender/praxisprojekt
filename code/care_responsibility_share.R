@@ -151,7 +151,8 @@ plot_care_country_gap <- function(data, n_countries = 20) {
 }
 
 # Correlation analysis function for care share and LFP
-plot_care_lfp_correlation <- function(data, lfp_data) {
+
+plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
   dt <- as.data.table(data)[
     sex.label %in% c("Male", "Female") & !is.na(obs_value),
     .(country = ref_area.label, year = time, sex = sex.label, value = obs_value)
@@ -170,6 +171,11 @@ plot_care_lfp_correlation <- function(data, lfp_data) {
   dt_wide <- dt_wide[!is.na(Female) & !is.na(Male)]
   dt_wide[, care_gap := Female - Male]
 
+  # derive the same top/bottom country groups as the lollipop — no change to that function needed
+  setorder(dt_wide, care_gap)
+  low_gap_countries  <- head(dt_wide$country, n_countries / 2)
+  high_gap_countries <- tail(dt_wide$country, n_countries / 2)
+
   dt_lfp <- as.data.table(lfp_data)[
     classif1.label == "Age (Youth, adults): 15+" &
       sex.label %in% c("Male", "Female") & !is.na(obs_value),
@@ -182,6 +188,13 @@ plot_care_lfp_correlation <- function(data, lfp_data) {
                   dt_lfp_wide[, .(country, year, lfp_gap)],
                   by = c("country", "year"))
 
+  # assign highlight group
+  merged[, highlight := fcase(
+    country %in% high_gap_countries, "High care gap (top 10)",
+    country %in% low_gap_countries,  "Low care gap (bottom 10)",
+    default = "Other"
+  )]
+
   sp_rho <- round(cor(merged$care_gap, merged$lfp_gap,
                       method = "spearman", use = "complete.obs"), 3)
   annot  <- paste0("Spearman \u03C1 = ", sp_rho, "\nn = ", nrow(merged))
@@ -189,8 +202,19 @@ plot_care_lfp_correlation <- function(data, lfp_data) {
   cat("Spearman rho: ", sp_rho, "\n")
   cat("N:            ", nrow(merged), "\n")
 
-  ggplot(merged, aes(x = lfp_gap, y = care_gap)) +
-    geom_point(size = 2.5, alpha = 0.6, color = "steelblue") +
+  ggplot(merged, aes(x = lfp_gap, y = care_gap, color = highlight)) +
+    geom_point(aes(size  = ifelse(highlight == "Other", 2.0, 2.8),
+                   alpha = ifelse(highlight == "Other", 0.4, 0.9))) +
+    scale_size_identity() +
+    scale_alpha_identity() +
+    scale_color_manual(
+      values = c(
+        "High care gap (top 10)"    = "#c0392b",
+        "Low care gap (bottom 10)"  = "#f5a623",
+        "Other"                     = "grey70"
+      ),
+      name = NULL
+    ) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
     geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
     annotate(
@@ -205,9 +229,10 @@ plot_care_lfp_correlation <- function(data, lfp_data) {
     labs(
       title    = "Care Inactivity Gap vs Labour Force Participation Gap",
       subtitle = paste0("One point = one country | Most recent paired year 2020\u20132023 | ",
-                        "n = ", nrow(merged), " countries"),
+                        "n = ", nrow(merged), " countries | ",
+                        "Highlighted = top & bottom 10 from previous slide"),
       x        = "Labour Force Participation gap (Male minus Female, pp)",
-      y        = "Care inactivity gap (Women minus Men, pp)",
+      y        = "Care inactivity gap (Female minus Male, pp)",
       caption  = "Source: ILOSTAT. Data: Most recent paired year between 2020 and 2023 per country with more than 1 data point."
     ) +
     theme_minimal(base_size = 11) +
@@ -215,12 +240,24 @@ plot_care_lfp_correlation <- function(data, lfp_data) {
       plot.title       = element_text(face = "bold", size = 13),
       plot.subtitle    = element_text(color = "grey50", size = 9),
       plot.caption     = element_text(color = "grey50", size = 7),
+      legend.position  = "bottom",
       panel.grid.minor = element_blank()
     )
 }
 
 care_responsibilities_share <- load_care_resp_share_data()
 lfp <- load_lfp_data()
+
+plot_care_country_gap(care_responsibilities_share)
+plot_care_lfp_correlation(care_responsibilities_share, lfp)
+
+
+
+
+
+
+
+
 
 ### Ignore from here (research purpose only)
 
