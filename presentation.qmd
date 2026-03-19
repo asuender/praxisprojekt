@@ -14,7 +14,6 @@ format:
     slide-number: true
     logo: assets/logo.svg
     css: presentation.css
----=
 ---
 
 ```{r setup, include=FALSE}
@@ -79,11 +78,23 @@ gpi_subplot <- function(level) {
       plot.margin = margin(t = 8, r = 2, b = 2, l = 2)
     )
 }
+
+wage_gap <- load_wage_gap_data()
+trend_gap <- prepare_wage_gap_trend(wage_gap)
+
+latest_year <- max(wage_gap$time)
+top_countries <- prepare_wage_gap_top_countries(wage_gap, latest_year)
+
+first_year <- min(wage_gap$time)
+last_year <- max(wage_gap$time)
+change_full <- prepare_wage_gap_change(wage_gap, first_year, last_year)
+
+change_1920 <- prepare_wage_gap_change(wage_gap, 2019, 2020)
 ```
 
 # Motivation
 
-------------------------------------------------------------------------
+---
 
 ```{r gii}
 ggplot(gii_world) +
@@ -120,19 +131,19 @@ Our analysis is based on data sets gathered from the following sources:
 
 # Education
 
-------------------------------------------------------------------------
+---
 
 <!-- ```{r gpi-primary-latest} -->
 <!-- plot_gpi_map(gpi, "Primary") -->
 <!-- ``` -->
 
-------------------------------------------------------------------------
+---
 
 <!-- ```{r gpi-lower-secondary-latest} -->
 <!-- plot_gpi_map(gpi, "Lower secondary") -->
 <!-- ``` -->
 
-------------------------------------------------------------------------
+---
 
 <!-- ```{r gpi-upper-secondary-latest} -->
 <!-- plot_gpi_map(gpi, "Upper secondary") -->
@@ -144,13 +155,13 @@ Our analysis is based on data sets gathered from the following sources:
 <!-- plot_gpi_map(gpi, "Tertiary") -->
 <!-- ``` -->
 
-------------------------------------------------------------------------
+---
 
 ```{r}
 #plot_gpi_map(gpi, "Tertiary")
 ```
 
-------------------------------------------------------------------------
+---
 
 ```{r completion-global-latest}
 ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex)) +
@@ -159,7 +170,7 @@ ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex))
   labs(title = "Average completion rates", subtitle = "Shown by Sex and Education level, 2021", x = "Education level", y = "Average completion rate", fill = "Sex")
 ```
 
-------------------------------------------------------------------------
+---
 
 ```{r completion-time}
 ggplot(completion.time, aes(x = year, y = value, color = sex, linetype = educationLevel)) +
@@ -170,7 +181,7 @@ ggplot(completion.time, aes(x = year, y = value, color = sex, linetype = educati
   labs(title = "Completion rates over time", subtitle = "Averaged across countries with complete data for 2010, 2015, and 2020", x = "Year", y = "Average completion rate", color = "Sex", linetype = "Education level")
 ```
 
-------------------------------------------------------------------------
+---
 
 ```{r completion-countries}
 ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
@@ -215,35 +226,30 @@ plot_care_lfp_correlation(care_responsibilities_share, lfp)
    
 ## Median wage gap over time
 ```{r}
-wage_gap <- load_wage_gap_data()
-trend_gap <- prepare_wage_gap_trend(wage_gap)
 plot_wage_gap_trend(trend_gap)
 ```
 
 ---
 
 ## Top countries with highest wage gap
+
 ```{r}
-latest_year <- max(wage_gap$time)
-top_countries <- prepare_wage_gap_top_countries(wage_gap, latest_year)
 plot_wage_gap_top_countries(top_countries, latest_year)
 ```
 
 ---
 
 ## Largest changes over time
+
 ```{r}
-first_year <- min(wage_gap$time)
-last_year <- max(wage_gap$time)
-change_full <- prepare_wage_gap_change(wage_gap, first_year, last_year)
 plot_wage_gap_change(change_full, first_year, last_year)
 ```
 
 ---
 
 ## Change around the pandemic (2019–2020)
+
 ```{r}
-change_1920 <- prepare_wage_gap_change(wage_gap, 2019, 2020)
 plot_wage_gap_change(change_1920, 2019, 2020)
 ```
 
