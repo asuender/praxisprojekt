@@ -232,6 +232,10 @@ lf_GER_2010_to_2024 %>%
   scale_color_manual(values = c("Female" = "red", "Male" = "blue")) +
   theme_light() 
 
+#Preparing data for third analysis
+lf_2024_by_education <-
+  prepare_lfpr_2024_by_education(labour_force_with_educ_cleaned)
+
 #Graph: LFPR Male vs. Female in 2024 by education, Germany
 lf_2024_by_education %>% filter(country == "Germany") %>%
   ggplot(aes(x = country, y = rate, fill = sex)) + 
