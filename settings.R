@@ -8,7 +8,10 @@ config.dataset.urls <- list(
     url = "https://rplumber.ilo.org/data/indicator/?id=EAR_EMTA_SEX_NB_A&lang=en&type=label&format=.csv.gz&channel=ilostat",
     filename = "ilo_avg_monthly_wages.csv.gz"
   ),
-
+  list(
+    url = "https://rplumber.ilo.org/data/indicator/?id=EAR_EHRA_SEX_CUR_NB_A&lang=en&type=label&format=.csv.gz&channel=ilostat",
+    filename = "ilo_avg_hourly_wages_usd.csv.gz"
+  ),
   # Unpaid care work
   list(
     url = "https://ourworldindata.org/grapher/female-to-male-ratio-of-time-devoted-to-unpaid-care-work.csv?v=1&csvType=full&useColumnShortNames=true",
@@ -114,4 +117,17 @@ config.dataset.urls <- list(
     url = "https://ourworldindata.org/grapher/school-enrolment.csv?v=1&csvType=full&useColumnShortNames=true&enrolment_type=gross_enrolment&level=tertiary&sex=sex_side_by_side",
     filename = "owid_gross_enrolment_tertiary.csv"
   )
+)
+
+theme_set(
+  theme_light(base_size = 14) +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      plot.subtitle = element_text(hjust = 0.5),
+      axis.title.x = element_text(margin = margin(t = 10)),
+      axis.title.y = element_text(margin = margin(r = 10)),
+      panel.border = element_rect(colour = "black", fill=NA, linewidth=1),
+      strip.background = element_blank(),
+      strip.text = element_text(color = "black")
+    )
 )
