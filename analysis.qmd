@@ -186,10 +186,12 @@ labour_force_with_educ <- load_labour_force_with_educ_data()
 labour_force_with_educ_cleaned <- prepare_lfpr_data(labour_force_with_educ)
 
 #Research on LFPR for women in year 2024
-labour_force_with_educ_cleaned %>% filter(sex == "Female") %>%
+labour_force_with_educ_cleaned %>% filter(sex == "Female", year == 2024,
+                                          str_detect(education, "Total")) %>%
   summarize(Median = median(rate), Mean =  mean(rate), Min = min(rate),
             Max = max(rate))
-labour_force_with_educ_cleaned %>% filter(sex == "Female",
+labour_force_with_educ_cleaned %>% filter(sex == "Female", year == 2024,
+                                          str_detect(education, "Total"),
                                   when_any(rate == 14.106, rate == 81.691))
 
 
@@ -205,20 +207,67 @@ lf_total_2024_comparison %>%
         x = "Country",
         y = "Labour Force Participation Rate in %",
         fill = "Biological Gender") +
-  scale_y_continuous(limits = c(0,90), breaks = seq(0,90,20))
+  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
+  scale_y_continuous(limits = c(0,90), breaks = seq(0,90,20)) +
+  theme_light()
 
 #Preparing data for second analysis
-lf_GER_2010_to_2024 <- 
+lf_GER_2010_to_2024 <-
   prepare_lfpr_GER_2010_to_2024(labour_force_with_educ_cleaned)
 
 #Graph: LFPR Male vs.Female in GER from 2010 until 2024
 lf_GER_2010_to_2024 %>%
-  ggplot(aes(x = year, y = rate, colour = sex)) + geom_line() +
+  ggplot(aes(x = year, y = rate, colour = sex)) + geom_line() + geom_point() +
   labs(title = "Labour Force Participation Rate in Germany between 2010 and 2024",
        x = "Year",
        y = "Labour Force Participation Rate in %",
        colour = "Biological Gender") +
-  scale_y_continuous(limits = c(0,70), breaks = seq(0,70,10))
+  scale_color_manual(values = c("Female" = "red", "Male" = "blue")) +
+  scale_y_continuous(limits = c(0,70), breaks = seq(0,70,10)) + 
+  theme_light() 
+
+#Graph: LFPR Male vs. Female in GER - zoomed in
+lf_GER_2010_to_2024 %>%
+  ggplot(aes(x = year, y = rate, colour = sex)) + geom_line() + geom_point() +
+  labs(title = "Labour Force Participation Rate in Germany between 2010 and 2024",
+       subtitle = "Zoomed in",
+       x = "Year",
+       y = "Labour Force Participation Rate in %",
+       colour = "Biological Gender") +
+  scale_color_manual(values = c("Female" = "red", "Male" = "blue")) +
+  theme_light() 
+
+#Preparing data for third analysis
+lf_2024_by_education <-
+  prepare_lfpr_2024_by_education(labour_force_with_educ_cleaned)
+
+#Graph: LFPR Male vs. Female in 2024 by education, Germany
+lf_2024_by_education %>% filter(country == "Germany") %>%
+  ggplot(aes(x = country, y = rate, fill = sex)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  labs(title = "Labour Force Participation Rate by Gender and Education Level",
+       subtitle = "Germany, 2024",
+        x = "Country",
+        y = "Labour Force Participation Rate in %",
+        fill = "Biological Gender") +
+  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
+  facet_wrap(~ education,
+             labeller = label_wrap_gen(width = 30)) +
+  theme_light()
+
+#Graph: LFPR Male vs. Female in 2024 by education, Iran
+lf_2024_by_education %>% filter(country == "Iran") %>%
+  ggplot(aes(x = country, y = rate, fill = sex)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  labs(title = "Labour Force Participation Rate by Gender and Education Level",
+       subtitle = "Iran, 2024",
+        x = "Country",
+        y = "Labour Force Participation Rate in %",
+        fill = "Biological Gender") +
+  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
+  facet_wrap(~ education,
+             labeller = label_wrap_gen(width = 30)) +
+  theme_light()
 ```
 
 # Analysis of Gender Wage Gap data

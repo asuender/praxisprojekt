@@ -79,6 +79,18 @@ gpi_subplot <- function(level) {
     )
 }
 
+labour_force_with_educ <- load_labour_force_with_educ_data()
+labour_force_with_educ_cleaned <- prepare_lfpr_data(labour_force_with_educ)
+
+lf_total_2024_comparison <-
+  prepare_lfpr_total_2024_comp(labour_force_with_educ_cleaned)
+
+lf_GER_2010_to_2024 <-
+  prepare_lfpr_GER_2010_to_2024(labour_force_with_educ_cleaned)
+
+lf_2024_by_education <-
+  prepare_lfpr_2024_by_education(labour_force_with_educ_cleaned)
+
 wage_gap <- load_wage_gap_data()
 trend_gap <- prepare_wage_gap_trend(wage_gap)
 
@@ -94,7 +106,7 @@ change_1920 <- prepare_wage_gap_change(wage_gap, 2019, 2020)
 
 # Motivation
 
----
+------------------------------------------------------------------------
 
 ```{r gii}
 ggplot(gii_world) +
@@ -123,13 +135,13 @@ ggplot(gii_world) +
 
 Our analysis is based on data sets gathered from the following sources:
 
-- ILOSTAT ([https://ilostat.ilo.org/](https://ilostat.ilo.org/))
-- UNESCO Institute of Statistics ([https://databrowser.uis.unesco.org/](https://databrowser.uis.unesco.org/))
-- Our World in Data ([https://ourworldindata.org/](https://ourworldindata.org/))
+-   ILOSTAT (<https://ilostat.ilo.org/>)
+-   UNESCO Institute of Statistics (<https://databrowser.uis.unesco.org/>)
+-   Our World in Data (<https://ourworldindata.org/>)
 
 ## Methodology
 
-- Single missing values were imputed using the average of the adjacent years
+-   Single missing values were imputed using the average of the adjacent years
 
 <!-- TODO -->
 
@@ -160,7 +172,7 @@ Our analysis is based on data sets gathered from the following sources:
 <!-- plot_gpi_map(gpi, "Tertiary") -->
 <!-- ``` -->
 
----
+------------------------------------------------------------------------
 
 ```{r gpi-all-combined, fig.width=12, fig.height=7}
 (gpi_subplot("Primary") + gpi_subplot("Lower secondary")) /
@@ -176,7 +188,7 @@ Our analysis is based on data sets gathered from the following sources:
   )
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r completion-global-latest}
 ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex)) +
@@ -185,7 +197,7 @@ ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex))
   labs(title = "Average completion rates", subtitle = "Shown by Sex and Education level, 2021", x = "Education level", y = "Average completion rate", fill = "Sex")
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r completion-time}
 ggplot(completion.time, aes(x = year, y = value, color = sex, linetype = educationLevel)) +
@@ -196,7 +208,7 @@ ggplot(completion.time, aes(x = year, y = value, color = sex, linetype = educati
   labs(title = "Completion rates over time", subtitle = "Averaged across countries with complete data for 2010, 2015, and 2020", x = "Year", y = "Average completion rate", color = "Sex", linetype = "Education level")
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r completion-countries}
 ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
@@ -209,7 +221,82 @@ ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
 
 # Labor force participation
 
-<!-- TODO -->
+---
+
+```{r}
+lf_total_2024_comparison %>% 
+  ggplot(aes(x = country, y = rate, fill = sex)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Labour Force Participation Rate in 2024 by Gender",
+        x = "Country",
+        y = "Labour Force Participation Rate in %",
+        fill = "Biological Gender") +
+  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
+  scale_y_continuous(limits = c(0,90), breaks = seq(0,90,20)) +
+  theme_light()
+```
+
+---
+
+```{r}
+lf_GER_2010_to_2024 %>%
+  ggplot(aes(x = year, y = rate, colour = sex)) + geom_line() + geom_point() +
+  labs(title = "Labour Force Participation Rate in Germany between 2010 and 2024",
+       x = "Year",
+       y = "Labour Force Participation Rate in %",
+       colour = "Biological Gender") +
+  scale_color_manual(values = c("Female" = "red", "Male" = "blue")) +
+  scale_y_continuous(limits = c(0,70), breaks = seq(0,70,10)) + 
+  theme_light()
+```
+
+---
+
+```{r}
+lf_GER_2010_to_2024 %>%
+  ggplot(aes(x = year, y = rate, colour = sex)) + geom_line() + geom_point() +
+  labs(title = "Labour Force Participation Rate in Germany between 2010 and 2024",
+       subtitle = "Zoomed in",
+       x = "Year",
+       y = "Labour Force Participation Rate in %",
+       colour = "Biological Gender") +
+  scale_color_manual(values = c("Female" = "red", "Male" = "blue")) +
+  theme_light() 
+```
+
+---
+
+```{r}
+lf_2024_by_education %>% filter(country == "Germany") %>%
+  ggplot(aes(x = country, y = rate, fill = sex)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  labs(title = "Labour Force Participation Rate by Gender and Education Level",
+       subtitle = "Germany, 2024",
+        x = "Country",
+        y = "Labour Force Participation Rate in %",
+        fill = "Biological Gender") +
+  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
+  facet_wrap(~ education,
+             labeller = label_wrap_gen(width = 30)) +
+  theme_light()
+```
+
+---
+
+```{r}
+lf_2024_by_education %>% filter(country == "Iran") %>%
+  ggplot(aes(x = country, y = rate, fill = sex)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  labs(title = "Labour Force Participation Rate by Gender and Education Level",
+       subtitle = "Iran, 2024",
+        x = "Country",
+        y = "Labour Force Participation Rate in %",
+        fill = "Biological Gender") +
+  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
+  facet_wrap(~ education,
+             labeller = label_wrap_gen(width = 30)) +
+  theme_light()
+```
 
 # Care Work
 
@@ -278,7 +365,7 @@ plot_wage_gap_change(change_1920, 2019, 2020)
 
 ## Limitations
 
-- Missing values impede data aggregation on a global scale
-- Data shows limited availability across indicators examined
+-   Missing values impede data aggregation on a global scale
+-   Data shows limited availability across indicators examined
 
 # Thank you very much!
