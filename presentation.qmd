@@ -3,12 +3,13 @@ title: "Gender Inequality"
 subtitle: "Statistical project (LMU Munich)"
 author: "Jinwook Bae, Miriam Haf, Xuchen Shen, Andreas Sünder"
 date: today
-date-format: "D. MMMM YYYY"
+date-format: "MMMM D, YYYY"
 lang: en
 execute:
   echo: false
 format:
   revealjs:
+    fontsize: 32px
     theme: default
     slide-number: true
     logo: assets/logo.svg
@@ -63,9 +64,32 @@ plot_gpi_map <- function(data, level) {
     ) +
     coord_sf(ylim = c(-56, 90)) +
     labs(title = paste("Gender Parity Index -", level, "education"), subtitle = "Expressed as the ratio between the GER of females and males") +
-    theme_light() +
-    theme(legend.position = "bottom", legend.key.width = unit(2, "cm"), legend.title = element_text(vjust = 0.75), axis.text = element_blank(), axis.ticks = element_blank())
+    theme(legend.title = element_text(vjust = 0.75), axis.text = element_blank(), axis.ticks = element_blank())
 }
+
+# this is an experimental function that is used by
+# the combined GPI plot as it requires inducing some custom
+# spacing to make the map use the available space efficiently
+gpi_subplot <- function(level) {
+  plot_gpi_map(gpi, level) +
+    labs(title = level, subtitle = NULL) +
+    theme(
+      plot.title = element_text(size = 12, hjust = 0.5, margin = margin(b = 3)),
+      plot.margin = margin(t = 8, r = 2, b = 2, l = 2)
+    )
+}
+
+wage_gap <- load_wage_gap_data()
+trend_gap <- prepare_wage_gap_trend(wage_gap)
+
+latest_year <- max(wage_gap$time)
+top_countries <- prepare_wage_gap_top_countries(wage_gap, latest_year)
+
+first_year <- min(wage_gap$time)
+last_year <- max(wage_gap$time)
+change_full <- prepare_wage_gap_change(wage_gap, first_year, last_year)
+
+change_1920 <- prepare_wage_gap_change(wage_gap, 2019, 2020)
 ```
 
 # Motivation
@@ -82,15 +106,18 @@ ggplot(gii_world) +
   ) +
   coord_sf(ylim = c(-56, 90)) +
   labs(title = "Gender Inequality Index, 2023") +
-  theme_light() +
   theme(axis.text = element_blank(), axis.ticks = element_blank())
 ```
 
-## Questions
+## Research Questions
 
--   Are there any gender-specific differences in unpaid work, income or pay, and labor force participation?
--   How do these gender-specific differences vary across countries, and how have they evolved over time?
--   Is there a correlation between these differences and development-related indicators such as the HDI, the Democracy Index, or others?
+1. Are there any gender-specific differences in:
+   i. **education**,
+   ii. **labor force participation**,
+   iii. **care work**, and
+   iv. **income**?
+2. How do these gender-specific differences vary across countries, and how have they evolved over time?
+3. Is there a correlation between these differences and development-related indicators such as the HDI, the Democracy Index, or others?
 
 ## Data sets
 
@@ -100,7 +127,7 @@ Our analysis is based on data sets gathered from the following sources:
 -   UNESCO Institute of Statistics (<https://databrowser.uis.unesco.org/>)
 -   Our World in Data (<https://ourworldindata.org/>)
 
-## Preliminary considerations
+## Methodology
 
 -   Single missing values were imputed using the average of the adjacent years
 
@@ -108,60 +135,76 @@ Our analysis is based on data sets gathered from the following sources:
 
 # Education
 
+<!-- I will leave these slides out in case I need to revert back to only having one plot per slide -->
+<!-- --- -->
+
+<!-- ```{r gpi-primary-latest} -->
+<!-- plot_gpi_map(gpi, "Primary") -->
+<!-- ``` -->
+
+<!-- --- -->
+
+<!-- ```{r gpi-lower-secondary-latest} -->
+<!-- plot_gpi_map(gpi, "Lower secondary") -->
+<!-- ``` -->
+
+<!-- --- -->
+
+<!-- ```{r gpi-upper-secondary-latest} -->
+<!-- plot_gpi_map(gpi, "Upper secondary") -->
+<!-- ``` -->
+
+<!-- --- -->
+
+<!-- ```{r gpi-tertiary-latest} -->
+<!-- plot_gpi_map(gpi, "Tertiary") -->
+<!-- ``` -->
+
 ------------------------------------------------------------------------
 
-```{r}
-plot_gpi_map(gpi, "Primary")
+```{r gpi-all-combined, fig.width=12, fig.height=7}
+(gpi_subplot("Primary") + gpi_subplot("Lower secondary")) /
+(gpi_subplot("Upper secondary") + gpi_subplot("Tertiary")) +
+  plot_layout(guides = "collect") +
+  plot_annotation(
+    title = "Gender Parity Index by Education Level",
+    subtitle = "Ratio of female to male gross enrollment ratio, 2020"
+  ) &
+  theme(
+    legend.position = "bottom",
+    legend.key.width = unit(2, "cm")
+  )
 ```
 
 ------------------------------------------------------------------------
 
-```{r}
-plot_gpi_map(gpi, "Lower secondary")
-```
-
-------------------------------------------------------------------------
-
-```{r}
-plot_gpi_map(gpi, "Upper secondary")
-```
-
-------------------------------------------------------------------------
-
-```{r}
-plot_gpi_map(gpi, "Tertiary")
-```
-
-------------------------------------------------------------------------
-
-```{r}
+```{r completion-global-latest}
 ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex)) +
-  geom_bar(position = "dodge", stat = "identity") +
-  labs(title = "Average completion rates by sex, 2021", x = "Education level", y = "Average completion rate", fill = "Sex") +
-  theme_light()
+  geom_bar(position = "dodge", stat = "identity", color = "black", linewidth = 0.5) +
+  ylim(0, 100) +
+  labs(title = "Average completion rates", subtitle = "Shown by Sex and Education level, 2021", x = "Education level", y = "Average completion rate", fill = "Sex")
 ```
 
 ------------------------------------------------------------------------
 
-```{r}
+```{r completion-time}
 ggplot(completion.time, aes(x = year, y = value, color = sex, linetype = educationLevel)) +
   geom_line() +
   geom_point() +
   scale_x_continuous(breaks = YEARS_FOR_COMPLETION) +
   scale_y_continuous(breaks = seq(65, 100, by = 5)) +
-  labs(title = "Completion rates over time", subtitle = "Averaged across countries with complete data for 2010, 2015, and 2020", x = "Year", y = "Average completion rate", color = "Sex", linetype = "Education level") +
-  theme_light()
+  labs(title = "Completion rates over time", subtitle = "Averaged across countries with complete data for 2010, 2015, and 2020", x = "Year", y = "Average completion rate", color = "Sex", linetype = "Education level")
 ```
 
 ------------------------------------------------------------------------
 
-```{r}
+```{r completion-countries}
 ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
   geom_line() +
   geom_point() +
   facet_wrap(~country, nrow = 2) +
-  labs(title = "Completion rates for selected countries over time", subtitle = "Averaged across primary, lower secondary, and upper secondary education", x = "Year", y = "Average completion rate", color = "Sex") +
-  theme_light()
+  theme(panel.spacing.x = unit(2.5, "lines")) +
+  labs(title = "Completion rates for selected countries over time", subtitle = "Averaged across primary, lower secondary, and upper secondary education", x = "Year", y = "Average completion rate", color = "Sex")
 ```
 
 # Labor force participation
@@ -232,15 +275,66 @@ lf_2024_by_education %>% filter(country == "Iran") %>%
   theme_light()
 ```
 
-# Care work
+# Care Work
 
-<!-- TODO -->
+## Differences in Care Work
+
+```{r}
+plot_domestic_work_region(owid_domestic_work_time)
+```
+
+## Care Responsibilities Keeping People Out of Work
+
+```{r}
+plot_care_share_facet(care_responsibilities_share)
+```
+
+## Gap in Care Responsibility Share Amongst Countries
+
+```{r}
+plot_care_country_gap(care_responsibilities_share)
+```
+
+## Labour Force Participation vs Care Responsibility Share
+
+```{r}
+plot_care_lfp_correlation(care_responsibilities_share, lfp)
+```
 
 # Income
+   
+## Median wage gap over time
+```{r}
+plot_wage_gap_trend(trend_gap)
+```
 
-<!-- TODO -->
+---
+
+## Top countries with highest wage gap
+
+```{r}
+plot_wage_gap_top_countries(top_countries, latest_year)
+```
+
+---
+
+## Largest changes over time
+
+```{r}
+plot_wage_gap_change(change_full, first_year, last_year)
+```
+
+---
+
+## Change around the pandemic (2019–2020)
+
+```{r}
+plot_wage_gap_change(change_1920, 2019, 2020)
+```
 
 # Conclusion
+
+<!-- TODO -->
 
 ## Summary
 
