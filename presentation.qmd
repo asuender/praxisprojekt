@@ -13,6 +13,7 @@ format:
     slide-number: true
     logo: assets/logo.svg
     css: presentation.css
+---=
 ---
 
 ```{r setup, include=FALSE}
@@ -70,7 +71,7 @@ plot_gpi_map <- function(data, level) {
 
 # Motivation
 
----
+------------------------------------------------------------------------
 
 ```{r gii}
 ggplot(gii_world) +
@@ -86,54 +87,53 @@ ggplot(gii_world) +
   theme(axis.text = element_blank(), axis.ticks = element_blank())
 ```
 
-
 ## Questions
 
-- Are there any gender-specific differences in unpaid work, income or pay, and labor force participation?
-- How do these gender-specific differences vary across countries, and how have they evolved over time?
-- Is there a correlation between these differences and development-related indicators such as the HDI, the Democracy Index, or others?
+-   Are there any gender-specific differences in unpaid work, income or pay, and labor force participation?
+-   How do these gender-specific differences vary across countries, and how have they evolved over time?
+-   Is there a correlation between these differences and development-related indicators such as the HDI, the Democracy Index, or others?
 
 ## Data sets
 
 Our analysis is based on data sets gathered from the following sources:
 
-- ILOSTAT ([https://ilostat.ilo.org/](https://ilostat.ilo.org/))
-- UNESCO Institute of Statistics ([https://databrowser.uis.unesco.org/](https://databrowser.uis.unesco.org/))
-- Our World in Data ([https://ourworldindata.org/](https://ourworldindata.org/))
+-   ILOSTAT (<https://ilostat.ilo.org/>)
+-   UNESCO Institute of Statistics (<https://databrowser.uis.unesco.org/>)
+-   Our World in Data (<https://ourworldindata.org/>)
 
 ## Preliminary considerations
 
-- Single missing values were imputed using the average of the adjacent years
+-   Single missing values were imputed using the average of the adjacent years
 
 <!-- TODO -->
 
 # Education
 
----
+------------------------------------------------------------------------
 
 ```{r}
 plot_gpi_map(gpi, "Primary")
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r}
 plot_gpi_map(gpi, "Lower secondary")
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r}
 plot_gpi_map(gpi, "Upper secondary")
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r}
-plot_gpi_map(gpi, "Tertiary")
+#plot_gpi_map(gpi, "Tertiary")
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r}
 ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex)) +
@@ -142,7 +142,7 @@ ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex))
   theme_light()
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r}
 ggplot(completion.time, aes(x = year, y = value, color = sex, linetype = educationLevel)) +
@@ -154,7 +154,7 @@ ggplot(completion.time, aes(x = year, y = value, color = sex, linetype = educati
   theme_light()
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r}
 ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
@@ -174,10 +174,44 @@ ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
 <!-- TODO -->
 
 # Income
+   
+## Median wage gap over time
+```{r}
+wage_gap <- load_wage_gap_data()
+trend_gap <- prepare_wage_gap_trend(wage_gap)
+plot_wage_gap_trend(trend_gap)
+```
 
-<!-- TODO -->
+---
+
+## Top countries with highest wage gap
+```{r}
+latest_year <- max(wage_gap$time)
+top_countries <- prepare_wage_gap_top_countries(wage_gap, latest_year)
+plot_wage_gap_top_countries(top_countries, latest_year)
+```
+
+---
+
+## Largest changes over time
+```{r}
+first_year <- min(wage_gap$time)
+last_year <- max(wage_gap$time)
+change_full <- prepare_wage_gap_change(wage_gap, first_year, last_year)
+plot_wage_gap_change(change_full, first_year, last_year)
+```
+
+---
+
+## Change around the pandemic (2019–2020)
+```{r}
+change_1920 <- prepare_wage_gap_change(wage_gap, 2019, 2020)
+plot_wage_gap_change(change_1920, 2019, 2020)
+```
 
 # Conclusion
+
+<!-- TODO -->
 
 ## Summary
 
@@ -185,7 +219,7 @@ ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
 
 ## Limitations
 
-- Missing values impede data aggregation on a global scale
-- Data shows limited availability across indicators examined
+-   Missing values impede data aggregation on a global scale
+-   Data shows limited availability across indicators examined
 
 # Thank you very much!
