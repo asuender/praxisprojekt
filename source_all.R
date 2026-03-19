@@ -3,6 +3,7 @@ library(here)
 library(rnaturalearth)
 library(sf)
 library(countrycode)
+library(patchwork)
 
 source("settings.R")
 lapply(
