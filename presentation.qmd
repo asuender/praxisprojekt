@@ -26,7 +26,7 @@ download_data()
 
 ```{r data-prep, include=FALSE, cache=TRUE}
 # You can put any constant values here
-COUNTRIES_FOR_COMPLETION <- c("Yemen", "Afghanistan", "Sweden", "Brazil")
+COUNTRIES_FOR_COMPLETION <- c("Germany", "Brazil", "Nigeria", "Venezuela")
 COUNTRIES_FOR_COMPLETION_LATEST <- c("Austria", "Vietnam", "Tunisia", "Brazil")
 YEARS_FOR_COMPLETION <- c(2010, 2015, 2020)
 
@@ -38,8 +38,8 @@ gii_world <- merge(world, gii.latest, by.x = "iso_a3", by.y = "countryCode", all
 
 completion <- load_uis_completion_rates()
 completion.global.latest <- completion[year == 2021][, .(value = mean(value)), by = .(educationLevel, sex)]
-completion.countries <- completion[country %in% COUNTRIES_FOR_COMPLETION, .(value = mean(value)), by = .(country, year, sex)]
-completion.countries.latest <- completion[country %in% COUNTRIES_FOR_COMPLETION_LATEST & year == 2021]
+completion.countries.time <- completion[between(year, 2005, 2020) & country %in% COUNTRIES_FOR_COMPLETION, .(value = mean(value)), by = .(country, year, sex)]
+completion.countries.time[, country := factor(country, levels = COUNTRIES_FOR_COMPLETION)]
 
 gpi <- load_owid_gpi_data()
 # we outsource the repeating tasks for each education level
@@ -165,10 +165,11 @@ ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex))
 
 ---
 
-```{r completion-countries}
-ggplot(completion.countries, aes(x = year, y = value, color = sex)) +
+```{r completion-countries-time}
+ggplot(completion.countries.time, aes(x = year, y = value, color = sex)) +
   geom_line() +
   geom_point() +
+  ylim(40, 100) +
   facet_wrap(~country, nrow = 2) +
   theme(panel.spacing.x = unit(2.5, "lines")) +
   labs(title = "Completion rates for selected countries over time", subtitle = "Averaged across primary, lower secondary, and upper secondary education", x = "Year", y = "Average completion rate", color = "Sex")
