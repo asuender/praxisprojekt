@@ -238,10 +238,10 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
       color = "grey20"
     ) +
     labs(
-      title    = "Care Inactivity Gap vs Labour Force Participation Gap",
+      title    = "Care Related Labour Inactivity Gap vs Labour Force Participation Gap",
       subtitle = "One point = one country | Most recent paired year 2020\u20132023 | Highlighted = top & bottom 10 from previous slide",
       x        = "Labour Force Participation gap (Male minus Female)",
-      y        = "Care inactivity gap (Female minus Male)",
+      y        = "Care Related Labour inactivity gap (Female minus Male)",
       caption  = "Source: ILOSTAT. Data: Most recent paired year between 2020 and 2023 per country with more than 1 data point. Gap taken respectively as percentage points."
     ) +
     theme_minimal(base_size = 11) +
