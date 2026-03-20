@@ -37,7 +37,13 @@ gii.latest <- gii[year == 2023]
 gii_world <- merge(world, gii.latest, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
 
 completion <- load_uis_completion_rates()
-completion.global.latest <- completion[year == 2021][, .(value = mean(value)), by = .(educationLevel, sex)]
+balanced_countries <- completion[year == 2021,
+  if (uniqueN(educationLevel) == 3 && uniqueN(sex) == 2) .SD,
+  by = country
+]$country |> unique()
+completion.global.latest <- completion[year == 2021 & country %in% balanced_countries,
+  .(value = mean(value)), by = .(educationLevel, sex)
+]
 completion.countries.time <- completion[between(year, 2005, 2020) & country %in% COUNTRIES_FOR_COMPLETION, .(value = mean(value)), by = .(country, year, sex)]
 completion.countries.time[, country := factor(country, levels = COUNTRIES_FOR_COMPLETION)]
 
