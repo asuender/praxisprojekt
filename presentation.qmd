@@ -26,9 +26,7 @@ download_data()
 
 ```{r data-prep, include=FALSE, cache=TRUE}
 # You can put any constant values here
-COUNTRIES_FOR_COMPLETION <- c("Germany", "Brazil", "Nigeria", "Venezuela")
-COUNTRIES_FOR_COMPLETION_LATEST <- c("Austria", "Vietnam", "Tunisia", "Brazil")
-YEARS_FOR_COMPLETION <- c(2010, 2015, 2020)
+COUNTRIES_FOR_COMPLETION <- c("Germany", "Brazil", "Nigeria", "Dominican Republic")
 
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
