@@ -14,6 +14,8 @@ load_lfp_data <- function() {
 
 lfp <- load_lfp_data()
 
+
+
 # plot and facet wrap.
 plot_care_share_facet <- function(data) {
   dt <- as.data.table(data)
@@ -47,7 +49,7 @@ plot_care_share_facet <- function(data) {
     geom_line(linewidth = 1) +
     geom_point(size = 1.5) +
     scale_color_manual(values = c("Women" = "red", "Men" = "blue")) +
-    facet_wrap(~ country, scales = "free_y", ncol = 3) +
+    facet_wrap(~ country, ncol = 3) +
     labs(
       title    = "Care Responsibilities as Reason for Labour Market Inactivity",
       subtitle = "Share of people outside the labour force due to care responsibilities (%) | from 2005",
@@ -69,6 +71,7 @@ plot_care_share_facet <- function(data) {
 }
 
 care_responsibilities_share <- load_care_resp_share_data()
+plot_care_share_facet(care_responsibilities_share)
 
 
 #####
