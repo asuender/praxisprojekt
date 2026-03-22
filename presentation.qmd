@@ -106,6 +106,19 @@ care_responsibilities_share <- load_care_resp_share_data()
 lfp <- load_lfp_data()
 ```
 
+## Agenda
+
+1. Motivation
+2. Data Analysis:
+
+    Education\
+    Labor Force Participation\
+    Care Work\
+    Income
+   
+3. Summary
+4. Discussion
+
 # Motivation
 
 ---
