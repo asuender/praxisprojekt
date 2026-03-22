@@ -134,6 +134,7 @@ time line. We utilize facet wrapping of line plot portraying values given in dat
 
 ```{r}
 care_responsibilities_share <- load_care_resp_share_data()
+lfp <- load_lfp_data()
 
 # facet wrapped graphic (for presentation)
 plot_care_share_facet(care_responsibilities_share)
@@ -158,7 +159,7 @@ plot_care_share_trend(care_responsibilities_share, "Chile")
 plot_care_share_trend(care_responsibilities_share, "Australia")
 plot_care_share_trend(care_responsibilities_share, "Canada")
 
-plot_care_share_gii_correlation(care_responsibilities_share)
+plot_care_ratio_gii_correlation(care_responsibilities_share)
 ```
 
 # Analysis of Domestic Work Time data

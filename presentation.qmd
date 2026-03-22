@@ -17,7 +17,7 @@ format:
 ---
 
 ```{r setup, include=FALSE}
-# Put any `library()` calls (or similar here)
+# Put any `library()` calls (or similar) here
 # We can't put those into the setup block below, as the functions loaded by them
 # are not restored correctly when cached
 source("source_all.R")
@@ -35,11 +35,11 @@ gii.latest <- gii[year == 2023]
 gii_world <- merge(world, gii.latest, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
 
 completion <- load_uis_completion_rates()
-balanced_countries <- completion[year == 2021,
+balanced.countries.compl <- completion[year == 2021,
   if (uniqueN(educationLevel) == 3 && uniqueN(sex) == 2) .SD,
   by = country
 ]$country |> unique()
-completion.global.latest <- completion[year == 2021 & country %in% balanced_countries,
+completion.global.latest <- completion[year == 2021 & country %in% balanced.countries.compl,
   .(value = mean(value)), by = .(educationLevel, sex)
 ]
 completion.countries.time <- completion[between(year, 2005, 2020) & country %in% COUNTRIES_FOR_COMPLETION, .(value = mean(value)), by = .(country, year, sex)]
@@ -99,6 +99,11 @@ last_year <- max(wage_gap$time)
 change_full <- prepare_wage_gap_change(wage_gap, first_year, last_year)
 
 change_1920 <- prepare_wage_gap_change(wage_gap, 2019, 2020)
+
+# Load care work and domestic work data
+owid_domestic_work_time <- load_domestic_work_time_data()
+care_responsibilities_share <- load_care_resp_share_data()
+lfp <- load_lfp_data()
 ```
 
 # Motivation
@@ -128,17 +133,13 @@ ggplot(gii_world) +
 2. How do these gender-specific differences vary across countries, and how have they evolved over time?
 3. Is there a correlation between these differences and development-related indicators such as the HDI, the Democracy Index, or others?
 
-## Data sets
+## Data sets & Methodology
 
 Our analysis is based on data sets gathered from the following sources:
 
 -   ILOSTAT (<https://ilostat.ilo.org/>)
 -   UNESCO Institute of Statistics (<https://databrowser.uis.unesco.org/>)
 -   Our World in Data (<https://ourworldindata.org/>)
-
-## Methodology
-
--   Single missing values were imputed using the average of the adjacent years
 
 # Education
 
@@ -164,7 +165,7 @@ Our analysis is based on data sets gathered from the following sources:
 ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex)) +
   geom_bar(position = "dodge", stat = "identity", color = "black", linewidth = 0.5) +
   ylim(0, 100) +
-  labs(title = "Average completion rates", subtitle = "Shown by Sex and Education level, 2021", x = "Education level", y = "Average completion rate", fill = "Sex")
+  labs(title = "Average completion rates (n = 49 countries)", subtitle = "Shown by Sex and Education level, 2021", x = "Education level", y = "Average completion rate", fill = "Sex")
 ```
 
 ---

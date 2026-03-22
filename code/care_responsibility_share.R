@@ -12,8 +12,6 @@ load_lfp_data <- function() {
   fread(here("data", "raw", "ilo_labour_force_participation.csv.gz"))
 }
 
-lfp <- load_lfp_data()
-
 # plot and facet wrap.
 plot_care_share_facet <- function(data) {
   dt <- as.data.table(data)
@@ -67,8 +65,6 @@ plot_care_share_facet <- function(data) {
       panel.spacing   = unit(1, "lines")
     )
 }
-
-care_responsibilities_share <- load_care_resp_share_data()
 
 
 #####
@@ -218,9 +214,6 @@ plot_care_lfp_correlation <- function(data, lfp_data) {
       panel.grid.minor = element_blank()
     )
 }
-
-care_responsibilities_share <- load_care_resp_share_data()
-lfp <- load_lfp_data()
 
 ### Ignore from here (research purpose only)
 
