@@ -84,11 +84,11 @@ plot_domestic_work_region <- function(data) {
       y       = "Time (% of day)",
       fill    = "Gender",
       caption = paste0(
-        "Source: OWID. Country mean computed over all available years; regional median and IQR ",
-        "then derived from country means.\n",
-        "F/M Ratio shown above bars = ratio of regional medians (not median of per-country ratios). ",
-        "n = number of countries per region. ",
-        "Error bars show IQR (Q1\u2013Q3) of country means."
+        "Source: OWID.  Data: Country means computed over all available years from which regional median was extracted.",
+        "  IQR derived from country means in each region.\n",
+        "F/M Ratio shown above female bars = ratio of regional medians. ",
+        " n = number of countries per region. ",
+        " Error bars show IQR (Q1\u2013Q3) of country means."
       )
     ) +
     theme_minimal(base_size = 11) +
@@ -99,70 +99,5 @@ plot_domestic_work_region <- function(data) {
       plot.caption       = element_text(color = "grey", size = 7),
       legend.position    = "top",
       panel.grid.major.x = element_blank()
-    )
-}
-
-
-
-### Not to include but to analyze table
-
-# table graphic function
-# we may utilize this if necessary (in decision making).
-table_domestic_work_region <- function(data) {
-  dt <- as.data.table(data)[, .(
-    country = entity,
-    year    = year,
-    region  = owid_region,
-    female  = `_5_4_1__sl_dom_tspd__15_years_old_and_over__all_areas__female`,
-    male    = `_5_4_1__sl_dom_tspd__15_years_old_and_over__all_areas__male`
-  )]
-  dt <- dt[!is.na(female) & !is.na(male)]
-
-  dt_country <- dt[, .(
-    female = mean(female, na.rm = TRUE),
-    male   = mean(male, na.rm = TRUE)
-  ), by = .(country, region)]
-
-  dt_region <- dt_country[, .(
-    Women     = round(median(female, na.rm = TRUE), 2),
-    Men       = round(median(male, na.rm = TRUE), 2),
-    Gap       = round(median(female - male, na.rm = TRUE), 2),
-    Ratio     = round(median(female / male, na.rm = TRUE), 2),
-    Countries = uniqueN(country)
-  ), by = region]
-
-  setnames(dt_region, "region", "Region")
-  setorder(dt_region, -Gap)
-
-  dt_region |>
-    as.data.frame() |>
-    gt() |>
-    tab_header(
-      title    = "Gender Differences in Unpaid Domestic Work",
-      subtitle = "Median of country means over all available years"
-    ) |>
-    cols_label(
-      Women     = "Women (% day)",
-      Men       = "Men (% day)",
-      Gap       = "\u0394 Gender Gap",
-      Ratio     = "F/M Ratio",
-      Countries = "No. of Countries"
-    ) |>
-    tab_style(
-      cell_text(weight = "bold"),
-      cells_body(rows = Gap == max(Gap))
-    ) |>
-    tab_footnote(
-      footnote  = "\u0394 Gap = median (Women) \u2212 median (Men) as % of day. Ratio = Women / Men.",
-      locations = cells_column_labels(columns = Gap)
-    ) |>
-    tab_source_note("Source: OWID. Country mean over available years, then regional median.") |>
-    tab_options(
-      table.font.size            = 13,
-      heading.title.font.size    = 15,
-      heading.subtitle.font.size = 11,
-      column_labels.font.weight  = "bold",
-      table.border.top.color     = "black",
-      table.border.bottom.color  = "black"
     )
 }
