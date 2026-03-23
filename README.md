@@ -20,21 +20,23 @@ Let's keep it simple, stupid. To get started with this repository, follow the st
 
 ```
 praxisprojekt/
-├── code/                   # R scripts for data handling and analysis
-│   ├── data_download.R     # Download raw data from external sources
-│   ├── data_prep.R         # Clean and prepare data for analysis
-│   ├── models.R            # Statistical models and computations
-│   └── utils.R             # Shared helper functions
+├── code/                           # R scripts for data handling and analysis
+│   ├── data_download.R             # Download raw data from external sources
+│   ├── models.R                    # Statistical models and computations
+│   ├── education.R                 # Education data analysis (completion rates, GPI)
+│   ├── labour_force_participation.R # Labour force participation analysis
+│   ├── care_responsibility_share.R  # Care responsibilities analysis
+│   ├── domestic_work_time.R        # Unpaid domestic work analysis
+│   └── wage_gap.R                  # Gender wage gap analysis
 ├── data/
-│   ├── raw/                # Original, unmodified datasets
-│   └── intermediate/       # Cleaned/transformed data ready for analysis
-├── plots/                  # Generated plot output files
-├── analysis.qmd            # Local experimentation and exploratory analysis
-├── report.qmd              # DIN A4 Executive Summary (PDF)
-├── presentation.qmd        # Final presentation slides (Reveal.js)
-├── settings.R              # Project-wide settings and configuration
-├── source_all.R            # Sources all R scripts in code/ and settings.R
-└── renv/                   # Local renv library and infrastructure
+│   ├── raw/                        # Original, unmodified datasets (ZIP, CSV, CSV.GZ)
+│   └── intermediate/               # Cleaned/transformed data (currently unused)
+├── analysis.qmd                    # Local experimentation and exploratory analysis
+├── report.qmd                      # DIN A4 Executive Summary (PDF output)
+├── presentation.qmd                # Final presentation slides
+├── settings.R                      # Project-wide settings, URLs, and ggplot theme
+├── source_all.R                    # Sources all R scripts in code/ and settings.R
+└── renv/                           # Local renv library and infrastructure
 ```
 
 ## Glossary
