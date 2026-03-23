@@ -90,20 +90,10 @@ lf_GER_2010_to_2024 <-
 lf_2024_by_education <-
   prepare_lfpr_2024_by_education(labour_force_with_educ_cleaned)
 
-wage_gap <- load_wage_gap_data()
-trend_gap <- prepare_wage_gap_trend(wage_gap)
-
-latest_year <- max(wage_gap$time)
-top_countries <- prepare_wage_gap_top_countries(wage_gap, latest_year)
-
-first_year <- min(wage_gap$time)
-last_year <- max(wage_gap$time)
-change_full <- prepare_wage_gap_change(wage_gap, first_year, last_year)
-
-change_1920 <- prepare_wage_gap_change(wage_gap, 2019, 2020)
+wage_gap <- load_gender_wage_gap_data()
 
 # Load care work and domestic work data
-owid_domestic_work_time <- load_domestic_work_time_data()
+owid_domestic_work_time <- load_care_time_share_data()
 care_responsibilities_share <- load_care_resp_share_data()
 lfp <- load_lfp_data()
 ```
@@ -290,35 +280,35 @@ plot_care_lfp_correlation(care_responsibilities_share, lfp)
 ```
 
 # Income
-   
-## Median wage gap over time
+ 
+## Wage gap distribution across countries
+
 ```{r}
-plot_wage_gap_trend(trend_gap)
+plot_wage_gap_distribution(wage_gap)
 ```
 
 ---
 
-## Top countries with highest wage gap
+## Wage gap over time in selected countries
 
 ```{r}
-plot_wage_gap_top_countries(top_countries, latest_year)
+plot_wage_gap_facet(wage_gap)
 ```
 
 ---
 
-## Largest changes over time
+## Wage gap and broader gender inequality
 
 ```{r}
-plot_wage_gap_change(change_full, first_year, last_year)
+plot_wage_gap_gii_correlation(wage_gap)
 ```
 
----
-
-## Change around the pandemic (2019–2020)
-
-```{r}
-plot_wage_gap_change(change_1920, 2019, 2020)
-```
+<!-- Legacy income slides kept for reference.
+Old slide 1: plot_wage_gap_trend(trend_gap)
+Old slide 2: plot_wage_gap_top_countries(top_countries, latest_year)
+Old slide 3: plot_wage_gap_change(change_full, first_year, last_year)
+Old slide 4: plot_wage_gap_change(change_1920, 2019, 2020)
+-->
 
 # Conclusion
 
