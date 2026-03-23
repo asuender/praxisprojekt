@@ -41,6 +41,14 @@ praxisprojekt/
 
 ## Glossary
 
+### Gender Parity Index
+
+**Defintion**: The Gender Parity Index (GPI) is a measure derived as a ratio of female to male gross enrollment ratio. It counts all students enrolled at a specific education level, regardless of their age. This includes students who are younger or older than the official age range because they started school early, started late, or repeated grades.
+
+Values can exceed 100% when students repeat grades or start late. Capturing those side effects is necessary to measure absolute enrollment against the respective population.
+
+**Calculation method:** The gross enrollment ratio captures the enrollment at a given level by dividing the total number of students—of any age—by the size of the age group officially assigned to that level. This is done for both genders and then divided again to retrieve the GPI.
+
 ### Completion rate (primary education, lower secondary education, upper secondary education)
 
 **Definition:** SDG Indicator 4.1.2: Percentage of a cohort of children or young people aged 3-5 years above the intended age for the last grade of each level of education who have completed that grade.
