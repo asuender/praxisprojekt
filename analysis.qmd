@@ -102,7 +102,7 @@ gpi <- load_owid_gpi_data()
 # we outsource the repeating tasks for each education level
 # to avoid duplicated code segments
 plot_gpi_map <- function(data, level) {
-  gpi_filtered <- data[year == 2020 & educationLevel == level]
+  gpi_filtered <- data[year == 2021 & educationLevel == level]
   world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
 
   ggplot(world_merged) +
