@@ -4,11 +4,13 @@ library(data.table)
 library(gt)
 library(here)
 
-load_domestic_work_time_data <- function() {
-  fread(here("data", "raw", "owid_domestic_work_time.csv"))
-}
 
 # plot graphic function
+
+
+load_care_time_share_data <- function() {
+  fread(here("data", "raw", "owid_domestic_work_time.csv"))
+}
 
 plot_domestic_work_region <- function(data) {
   dt <- as.data.table(data)[, .(
