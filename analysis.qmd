@@ -174,7 +174,7 @@ from the means in each continent and plot a bar graph to identify the differnce.
 A more numerical analysis is done within the gt table with gaps and ratios.
 
 ```{r}
-owid_domestic_work_time <- load_domestic_work_time_data()
+owid_domestic_work_time <- load_care_time_share_data()
 
 # for presentation
 plot_domestic_work_region(owid_domestic_work_time)
@@ -309,4 +309,3 @@ plot_wage_gap_change(change_full, first_year, last_year)
 change_1920 <- prepare_wage_gap_change(wage_gap, 2019, 2020)
 plot_wage_gap_change(change_1920, 2019, 2020)
 ```
-
