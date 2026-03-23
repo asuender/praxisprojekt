@@ -49,7 +49,9 @@ gpi <- load_owid_gpi_data()
 # we outsource the repeating tasks for each education level
 # to avoid duplicated code segments
 plot_gpi_map <- function(data, level) {
-  gpi_filtered <- data[year == 2021 & educationLevel == level]
+  # Filter for 2020 and 2021, then pick the latest available year per country
+  gpi_filtered <- data[year %in% c(2020, 2021) & educationLevel == level]
+  gpi_filtered <- gpi_filtered[, .SD[which.max(year)], by = .(countryCode, country)]
   world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
 
   ggplot(world_merged) +
@@ -60,7 +62,7 @@ plot_gpi_map <- function(data, level) {
       limits = c(0.5, 1.5), oob = scales::squish
     ) +
     coord_sf(ylim = c(-56, 90)) +
-    labs(title = paste("Gender Parity Index -", level, "education"), subtitle = "Expressed as the ratio between the GER of females and males") +
+    labs(title = paste("Gender Parity Index -", level, "education"), subtitle = "Expressed as the ratio between the GER of females and males (latest of 2020/2021)") +
     theme(legend.title = element_text(vjust = 0.75), axis.text = element_blank(), axis.ticks = element_blank())
 }
 
@@ -164,7 +166,7 @@ Our analysis is based on data sets gathered from the following sources:
   plot_layout(guides = "collect") +
   plot_annotation(
     title = "Gender Parity Index by Education Level",
-    subtitle = "Ratio of female to male gross enrollment ratio, 2021"
+    subtitle = "Ratio of female to male gross enrollment ratio (latest of 2020/2021)"
   ) &
   theme(
     legend.position = "bottom",
