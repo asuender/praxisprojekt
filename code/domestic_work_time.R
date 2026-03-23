@@ -8,8 +8,6 @@ load_domestic_work_time_data <- function() {
   fread(here("data", "raw", "owid_domestic_work_time.csv"))
 }
 
-owid_domestic_work_time <- load_domestic_work_time_data()
-
 # plot graphic function
 
 plot_domestic_work_region <- function(data) {

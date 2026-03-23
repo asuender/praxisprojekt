@@ -110,31 +110,4 @@ load_owid_gpi_data <- function() {
   DT[, .(educationLevel, countryCode, country, year, value)]
 }
 
-#' Load UIS literacy rates by age group and sex
-#'
-#' Reads four ZIP archives (youth and adult, each for female and male) via
-#' \code{\link{prepare_uis_data}}, maps indicator names to age-group labels
-#' ("15-24", "25-64"), and retains only country-year combinations where both
-#' sexes are present.
-#'
-#' @return A \code{data.table} with columns: countryCode, country, ageGroup,
-#'   sex, year, value (literacy rate in percent).
-load_uis_literacy_rates <- function() {
-  files <- list(
-    youth_male   = "uis_literacy_rate_youth_male.zip",
-    youth_female = "uis_literacy_rate_youth_female.zip",
-    adult_male   = "uis_literacy_rate_adult_male.zip",
-    adult_female = "uis_literacy_rate_adult_female.zip"
-  )
 
-  DT <- prepare_uis_data(files)
-
-  DT[, ageGroup := sub("_[^_]+$", "", indicator)]
-  DT[, ageGroup := fcase(
-    ageGroup == "youth", "15-24",
-    ageGroup == "adult", "25-64"
-  )]
-  DT <- DT[, if (.N == 2) .SD, by = .(country, year)]
-
-  DT[, .(countryCode, country, ageGroup, sex, year, value)]
-}

@@ -20,24 +20,34 @@ Let's keep it simple, stupid. To get started with this repository, follow the st
 
 ```
 praxisprojekt/
-├── code/                   # R scripts for data handling and analysis
-│   ├── data_download.R     # Download raw data from external sources
-│   ├── data_prep.R         # Clean and prepare data for analysis
-│   ├── models.R            # Statistical models and computations
-│   └── utils.R             # Shared helper functions
+├── code/                           # R scripts for data handling and analysis
+│   ├── data_download.R             # Download raw data from external sources
+│   ├── models.R                    # Statistical models and computations
+│   ├── education.R                 # Education data analysis (completion rates, GPI)
+│   ├── labour_force_participation.R # Labour force participation analysis
+│   ├── care_responsibility_share.R  # Care responsibilities analysis
+│   ├── domestic_work_time.R        # Unpaid domestic work analysis
+│   └── wage_gap.R                  # Gender wage gap analysis
 ├── data/
-│   ├── raw/                # Original, unmodified datasets
-│   └── intermediate/       # Cleaned/transformed data ready for analysis
-├── plots/                  # Generated plot output files
-├── analysis.qmd            # Local experimentation and exploratory analysis
-├── report.qmd              # DIN A4 Executive Summary (PDF)
-├── presentation.qmd        # Final presentation slides (Reveal.js)
-├── settings.R              # Project-wide settings and configuration
-├── source_all.R            # Sources all R scripts in code/ and settings.R
-└── renv/                   # Local renv library and infrastructure
+│   ├── raw/                        # Original, unmodified datasets (ZIP, CSV, CSV.GZ)
+│   └── intermediate/               # Cleaned/transformed data (currently unused)
+├── analysis.qmd                    # Local experimentation and exploratory analysis
+├── report.qmd                      # DIN A4 Executive Summary (PDF output)
+├── presentation.qmd                # Final presentation slides
+├── settings.R                      # Project-wide settings, URLs, and ggplot theme
+├── source_all.R                    # Sources all R scripts in code/ and settings.R
+└── renv/                           # Local renv library and infrastructure
 ```
 
 ## Glossary
+
+### Gender Parity Index
+
+**Defintion**: The Gender Parity Index (GPI) is a measure derived as a ratio of female to male gross enrollment ratio. It counts all students enrolled at a specific education level, regardless of their age. This includes students who are younger or older than the official age range because they started school early, started late, or repeated grades.
+
+Values can exceed 100% when students repeat grades or start late. Capturing those side effects is necessary to measure absolute enrollment against the respective population.
+
+**Calculation method:** The gross enrollment ratio captures the enrollment at a given level by dividing the total number of students—of any age—by the size of the age group officially assigned to that level. This is done for both genders and then divided again to retrieve the GPI.
 
 ### Completion rate (primary education, lower secondary education, upper secondary education)
 

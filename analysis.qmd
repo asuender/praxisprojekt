@@ -102,7 +102,9 @@ gpi <- load_owid_gpi_data()
 # we outsource the repeating tasks for each education level
 # to avoid duplicated code segments
 plot_gpi_map <- function(data, level) {
-  gpi_filtered <- data[year == 2020 & educationLevel == level]
+  # Filter for 2020 and 2021, then pick the latest available year per country
+  gpi_filtered <- data[year %in% c(2020, 2021) & educationLevel == level]
+  gpi_filtered <- gpi_filtered[, .SD[which.max(year)], by = .(countryCode, country)]
   world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
 
   ggplot(world_merged) +
@@ -113,7 +115,7 @@ plot_gpi_map <- function(data, level) {
       limits = c(0.5, 1.5), oob = scales::squish
     ) +
     coord_sf(ylim = c(-56, 90)) +
-    labs(title = paste("Gender Parity Index -", level, "education"), subtitle = "Ratio of female to male gross enrollment ratio") +
+    labs(title = paste("Gender Parity Index -", level, "education"), subtitle = "Ratio of female to male gross enrollment ratio (latest of 2020/2021)") +
     theme_light() +
     theme(legend.position = "bottom", legend.key.width = unit(2, "cm"), legend.title = element_text(vjust = 0.75), axis.text = element_blank(), axis.ticks = element_blank())
 }
@@ -134,6 +136,7 @@ time line. We utilize facet wrapping of line plot portraying values given in dat
 
 ```{r}
 care_responsibilities_share <- load_care_resp_share_data()
+lfp <- load_lfp_data()
 
 # facet wrapped graphic (for presentation)
 plot_care_share_facet(care_responsibilities_share)
@@ -158,7 +161,7 @@ plot_care_share_trend(care_responsibilities_share, "Chile")
 plot_care_share_trend(care_responsibilities_share, "Australia")
 plot_care_share_trend(care_responsibilities_share, "Canada")
 
-plot_care_share_gii_correlation(care_responsibilities_share)
+plot_care_ratio_gii_correlation(care_responsibilities_share)
 ```
 
 # Analysis of Domestic Work Time data
