@@ -113,10 +113,9 @@ lfp <- load_lfp_data()
 1. Motivation
 2. Data Analysis:
 
-    Education\
-    Labor Force Participation\
-    Care Work\
-    Income
+    - Gender Differences in **Education**, **Labor Force Participation**, **Care Work** and **Income**
+    - Variation across countries and over time
+    - Correlation with other development-related indicators
    
 3. Summary
 4. Discussion
@@ -137,16 +136,6 @@ ggplot(gii_world) +
   labs(title = "Gender Inequality Index, 2023") +
   theme(axis.text = element_blank(), axis.ticks = element_blank())
 ```
-
-## Research Questions
-
-1. Are there any gender-specific differences in:
-   i. **education**,
-   ii. **labor force participation**,
-   iii. **care work**, and
-   iv. **income**?
-2. How do these gender-specific differences vary across countries, and how have they evolved over time?
-3. Is there a correlation between these differences and development-related indicators such as the HDI, the Democracy Index, or others?
 
 ## Data sets & Methodology
 
@@ -339,7 +328,7 @@ plot_wage_gap_change(change_1920, 2019, 2020)
 
 <!-- TODO -->
 
-## Limitations
+## Discussion
 
 -   Missing values impede data aggregation on a global scale
 -   Data shows limited availability across indicators examined
