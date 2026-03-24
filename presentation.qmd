@@ -89,6 +89,9 @@ lf_GER_2010_to_2024 <-
 
 lf_2024_by_education <-
   prepare_lfpr_2024_by_education(labour_force_with_educ_cleaned)
+lf_2024_educ_groupped <- group_educ_and_recalculate_rates(lf_2024_by_education)
+lf_2024_tert_educ <- tertiary_educ_detailed(lf_2024_by_education)
+
 
 wage_gap <- load_gender_wage_gap_data()
 
@@ -178,7 +181,7 @@ ggplot(completion.countries.time, aes(x = year, y = value, color = sex)) +
 
 ---
 
-```{r}
+```{r - Labour force participation, country comparison}
 lf_total_2024_comparison %>% 
   ggplot(aes(x = country, y = rate, fill = sex)) +
   geom_bar(stat = "identity", position = "dodge") +
@@ -193,7 +196,7 @@ lf_total_2024_comparison %>%
 
 ---
 
-```{r}
+```{r - Labour force participation in Germany over time}
 lf_GER_2010_to_2024 %>%
   ggplot(aes(x = year, y = rate, colour = sex)) + geom_line() + geom_point() +
   labs(title = "Labour Force Participation Rate in Germany between 2010 and 2024",
@@ -207,7 +210,7 @@ lf_GER_2010_to_2024 %>%
 
 ---
 
-```{r}
+```{r - Labour force participation in Germany over time (Zoom)}
 lf_GER_2010_to_2024 %>%
   ggplot(aes(x = year, y = rate, colour = sex)) + geom_line() + geom_point() +
   labs(title = "Labour Force Participation Rate in Germany between 2010 and 2024",
@@ -221,8 +224,8 @@ lf_GER_2010_to_2024 %>%
 
 ---
 
-```{r}
-lf_2024_by_education %>% filter(country == "Germany") %>%
+```{r - Labour force participation in Germany by education}
+lf_2024_educ_groupped %>% filter(country == "Germany") %>%
   ggplot(aes(x = country, y = rate, fill = sex)) + 
   geom_bar(stat = "identity", position = "dodge") + 
   labs(title = "Labour Force Participation Rate by Gender and Education Level",
@@ -231,15 +234,30 @@ lf_2024_by_education %>% filter(country == "Germany") %>%
         y = "Labour Force Participation Rate in %",
         fill = "Biological Gender") +
   scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
-  facet_wrap(~ education,
-             labeller = label_wrap_gen(width = 30)) +
+  facet_wrap(~ education_new) +
+  theme_light() 
+```
+
+---
+
+```{r - Labour force participation in Germany, tertiary education}
+lf_2024_tert_educ %>% filter(country == "Germany") %>%
+  ggplot(aes(x = country, y = rate, fill = sex)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Labour Force Participation Rate by Gender - Tertiary Education",
+       subtitle = "Germany, 2024",
+        x = "Country",
+        y = "Labour Force Participation Rate in %",
+        fill = "Biological Gender") +
+  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
+  facet_wrap(~ education) +
   theme_light()
 ```
 
 ---
 
-```{r}
-lf_2024_by_education %>% filter(country == "Iran") %>%
+```{r - Labour force participation in Iran by education}
+lf_2024_educ_groupped %>% filter(country == "Iran") %>%
   ggplot(aes(x = country, y = rate, fill = sex)) + 
   geom_bar(stat = "identity", position = "dodge") + 
   labs(title = "Labour Force Participation Rate by Gender and Education Level",
@@ -248,10 +266,26 @@ lf_2024_by_education %>% filter(country == "Iran") %>%
         y = "Labour Force Participation Rate in %",
         fill = "Biological Gender") +
   scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
-  facet_wrap(~ education,
-             labeller = label_wrap_gen(width = 30)) +
+  facet_wrap(~ education_new) +
   theme_light()
 ```
+
+---
+
+```{r - Labour force participation in Iran, tertiary education}
+lf_2024_tert_educ %>% filter(country == "Iran") %>%
+  ggplot(aes(x = country, y = rate, fill = sex)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Labour Force Participation Rate by Gender - Tertiary Education",
+       subtitle = "Iran, 2024",
+        x = "Country",
+        y = "Labour Force Participation Rate in %",
+        fill = "Biological Gender") +
+  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
+  facet_wrap(~ education) +
+  theme_light()
+```
+
 
 # Care Work
 
