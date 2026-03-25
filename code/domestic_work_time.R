@@ -4,10 +4,6 @@ library(data.table)
 library(gt)
 library(here)
 
-
-# plot graphic function
-
-
 load_care_time_share_data <- function() {
   fread(here("data", "raw", "owid_domestic_work_time.csv"))
 }

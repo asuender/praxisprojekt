@@ -2,7 +2,6 @@ library(ggplot2)
 library(data.table)
 library(here)
 
-
 load_gender_wage_gap_data <- function() {
   fread(here("data", "raw", "owid_gender_wage_gap.csv"))
 }

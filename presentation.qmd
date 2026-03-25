@@ -24,7 +24,7 @@ source("source_all.R")
 download_data()
 ```
 
-```{r data-prep, include=FALSE, cache=TRUE, cache.extra=paste(file.info(c("source_all.R", "settings.R", list.files("code", pattern="\\.R$", full.names=TRUE)))$mtime, collapse="|")}
+```{r data-prep, include=FALSE, cache=TRUE}
 # You can put any constant values here
 COUNTRIES_FOR_COMPLETION <- c("Germany", "Brazil", "Nigeria", "Dominican Republic")
 
