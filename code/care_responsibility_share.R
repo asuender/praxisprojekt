@@ -51,8 +51,7 @@ plot_care_share_facet <- function(data) {
       subtitle = "Share of people outside the labour force due to care responsibilities (%) | from 2005 onwards",
       x        = NULL,
       y        = "Share (%)",
-      color    = NULL,
-      caption  = "Source: ILOSTAT."
+      color    = NULL
     ) +
     theme_minimal(base_size = 11) +
     theme(
@@ -127,10 +126,10 @@ plot_care_country_gap <- function(data, n_countries = 20) {
       x        = "Gender gap (percentage points)",
       y        = NULL,
       caption  = paste0(
-        "Source: ILOSTAT. Countries with only one year of data excluded. ",
-        "Most recent paired year between 2020 and 2023 used per country. ",
-        "2024 data excluded due to incomplete provisional releases. ",
-        "Year shown in parentheses."
+        "Countries with less than 2 years of data was excluded.\n",
+        "Most recent paired year between 2020 and 2023 used per country.\n",
+        "2024 data excluded due to incomplete provisional releases.\n",
+        "Year extracted per country shown in parentheses."
       )
     ) +
     theme_minimal(base_size = 11) +
@@ -145,7 +144,6 @@ plot_care_country_gap <- function(data, n_countries = 20) {
       panel.grid.minor   = element_blank()
     )
 }
-
 
 ### Correlation analysis for graphics no.2
 # Correlation analysis function for care share and LFP
@@ -235,10 +233,9 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
     ) +
     labs(
       title    = "Care Related Labour Inactivity Gap vs Labour Force Participation Gap with 85 countries",
-      subtitle = "One point = one country | Most recent paired year 2020\u20132023 | Highlighted = top & bottom 10 countries from previous slide",
+      subtitle = "One point = one country | Most recent paired year between 2020\u20132023 with countries that have more than 1 data point | \nHighlighted = top & bottom 10 countries from previous slide",
       x        = "Labour Force Participation gap (Male minus Female)",
-      y        = "Care Related Labour inactivity gap (Female minus Male)",
-      caption  = "Source: ILOSTAT. Data: Most recent paired year between 2020 and 2023 per country with more than 1 data point. Gap taken respectively as percentage points."
+      y        = "Care Related Labour inactivity gap (Female minus Male)"
     ) +
     theme_minimal(base_size = 11) +
     theme(
@@ -249,3 +246,4 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
       panel.grid.minor = element_blank()
     )
 }
+

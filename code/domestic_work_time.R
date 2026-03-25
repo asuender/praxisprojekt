@@ -84,11 +84,10 @@ plot_domestic_work_region <- function(data) {
       y       = "Time (% of day)",
       fill    = "Gender",
       caption = paste0(
-        "Source: OWID.  Data: Country means computed over all available years from which regional median was extracted.",
-        "  IQR derived from country means in each region.\n",
-        "F/M Ratio shown above female bars = ratio of regional medians. ",
-        " n = number of countries per region. ",
-        " Error bars show IQR (Q1\u2013Q3) of country means."
+        "Data represents country means computed over all available years from which regional median was extracted.\n",
+        "F/M Ratio shown above female bars which represents ratio of regional medians.\n",
+        "n = number of countries per region.\n",
+        "IQR (Q1\u2013Q3) of country means shown for each median."
       )
     ) +
     theme_minimal(base_size = 11) +
