@@ -8,8 +8,7 @@ load_gender_wage_gap_data <- function() {
 }
 
 
-plot_wage_gap_distribution <- function(owid_data) {
-
+prepare_wage_gap_distribution_data <- function(owid_data, min_years = 1) {
   dt <- as.data.table(owid_data)[, .(
     country = entity,
     year    = year,
@@ -17,9 +16,18 @@ plot_wage_gap_distribution <- function(owid_data) {
   )]
   dt <- dt[!is.na(gap) & year >= 2000 & year <= 2025]
 
-  dt_country <- dt[, .(
-    gap = mean(gap, na.rm = TRUE)
+  dt_counts <- dt[, .(n_years = uniqueN(year)), by = country]
+  dt <- dt[country %in% dt_counts[n_years >= min_years, country]]
+
+  dt[, .(
+    gap     = mean(gap, na.rm = TRUE),
+    n_years = uniqueN(year)
   ), by = country]
+}
+
+
+plot_wage_gap_distribution <- function(owid_data) {
+  dt_country <- prepare_wage_gap_distribution_data(owid_data, min_years = 2)
 
   pct_positive <- round(100 * mean(dt_country$gap > 0), 1)
   med_gap      <- round(median(dt_country$gap, na.rm = TRUE), 1)
@@ -56,14 +64,14 @@ plot_wage_gap_distribution <- function(owid_data) {
     labs(
       title    = "Gender Wage Gap Distribution Across Countries",
       subtitle = paste0(
-        n_countries, " countries | country means over available years | 2000\u20132025"
+        n_countries, " countries | country means over available years | 2000-2025 | at least 2 data points"
       ),
-      x       = "Gender Wage Gap (male \u2212 female avg. wage, % of male wage)",
+      x       = "Gender Wage Gap (male - female avg. wage, % of male wage)",
       y       = "Number of Countries",
       caption = paste0(
         "Source: ILO via Our World in Data.  ",
-        "Country means computed over all available years within 2000\u20132025.\n",
-        "Gap defined as (male \u2212 female) / male \u00d7 100 at the total occupation level.  ",
+        "Country means computed over all available years within 2000-2025 after excluding countries with only one observation.\n",
+        "Gap defined as (male - female) / male x 100 at the total occupation level.  ",
         "Each bar represents a 3 percentage point interval (binwidth = 3); "
       )
     ) +
