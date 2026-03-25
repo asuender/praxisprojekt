@@ -37,13 +37,13 @@ plot_wage_gap_distribution <- function(owid_data) {
     geom_histogram(
       aes(fill = after_stat(x > 0)),
       binwidth  = 3,
-      color     = "white",
+      color     = unname(config.palette.presentation$ink),
       linewidth = 0.3
     ) +
-    scale_fill_manual(
-      values = c("FALSE" = "blue", "TRUE" = "red"),
-      labels = c("FALSE" = "Women earn more", "TRUE" = "Women earn less"),
-      name   = NULL
+    scale_fill_presentation_binary(
+      negative_label = "Women earn more",
+      positive_label = "Women earn less",
+      name = NULL
     ) +
     geom_vline(xintercept = 0,       linetype = "solid",  color = "black",  linewidth = 0.7) +
     geom_vline(xintercept = med_gap, linetype = "dashed", color = "grey20", linewidth = 0.6) +
@@ -57,30 +57,23 @@ plot_wage_gap_distribution <- function(owid_data) {
       "text", x = max(dt_country$gap, na.rm = TRUE) * 0.60, y = Inf,
       label    = paste0(pct_positive, "% of countries\nshow a positive gap"),
       hjust    = 0, vjust = 1.6,
-      size     = 3.4, color = "red", fontface = "bold"
+      size     = 3.4, color = unname(config.palette.sex["Female"]), fontface = "bold"
     ) +
     scale_x_continuous(labels = function(x) paste0(x, "%")) +
     scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
     labs(
-      title    = "Gender Wage Gap Distribution Across Countries",
-      subtitle = paste0(
-        n_countries, " countries | country means over available years | 2000-2025 | at least 2 data points"
-      ),
-      x       = "Gender Wage Gap (male - female avg. wage, % of male wage)",
-      y       = "Number of Countries",
+      title    = "Gender wage gap distribution across countries",
+      subtitle = paste0(n_countries, " countries | 2000-2025 | Country means"),
+      x       = "Wage gap (%)",
+      y       = "Number of countries",
       caption = paste0(
-        "Source: ILO via Our World in Data.  ",
-        "Country means computed over all available years within 2000-2025 after excluding countries with only one observation.\n",
-        "Gap defined as (male - female) / male x 100 at the total occupation level.  ",
-        "Each bar represents a 3 percentage point interval (binwidth = 3); "
+        "Source: Our World in Data.\n",
+        "Countries with fewer than 2 observations are excluded.\n",
+        "The wage gap is defined as (male - female) / male * 100."
       )
     ) +
-    theme_minimal(base_size = 11) +
     theme(
-      plot.title         = element_text(face = "bold", size = 13),
-      plot.subtitle      = element_text(color = "grey40", size = 9),
-      plot.caption       = element_text(color = "grey50", size = 7),
-      legend.position    = "top",
+      legend.position = "top",
       panel.grid.major.x = element_blank(),
       panel.grid.minor   = element_blank()
     )
@@ -111,29 +104,24 @@ plot_wage_gap_facet <- function(owid_data) {
   dt[, country := factor(country, levels = unname(country_map))]
 
   ggplot(dt, aes(x = year, y = gap)) +
-    geom_line(color = "red", linewidth = 1) +
-    geom_point(color = "red", size = 1.5) +
+    geom_line(color = unname(config.palette.sex["Female"]), linewidth = 1) +
+    geom_point(color = unname(config.palette.sex["Female"]), size = 1.5) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey50", linewidth = 0.5) +
     facet_wrap(~ country, ncol = 3) +
     scale_x_continuous(breaks = seq(2000, 2024, by = 6)) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     labs(
-      title    = "Gender Wage Gap Over Time Across Selected Countries",
-      subtitle = "Annual gap (male \u2212 female avg. wage, % of male wage) | 2000\u20132025 ",
+      title    = "Gender wage gap over time",
+      subtitle = "Selected countries | 2000-2025",
       x        = NULL,
-      y        = "Gender Wage Gap (%)",
-      caption  = paste0(
-        "Source: ILO via Our World in Data.  ",
-        "Positive values indicate women earn less than men.  ",
-        "Gap defined as (male \u2212 female) / male \u00d7 100 at total occupation level."
+      y        = "Anual wage gap",
+      caption  = paste(
+        "Source: Our World in Data.\n",
+        "Positive values indicate women earn less than men.\n",
+        "The wage gap is defined as (male - female) / male * 100."
       )
     ) +
-    theme_minimal(base_size = 11) +
     theme(
-      plot.title      = element_text(face = "bold", size = 13),
-      plot.subtitle   = element_text(color = "grey40", size = 9),
-      plot.caption    = element_text(color = "grey50", size = 7),
-      strip.text      = element_text(face = "bold", size = 10),
       axis.text.x     = element_text(angle = 45, hjust = 1, size = 8),
       panel.spacing   = grid::unit(1, "lines")
     )
@@ -161,9 +149,6 @@ plot_wage_gap_gii_correlation <- function(owid_data) {
   sp_test <- cor.test(merged$gap, merged$gii, method = "spearman")
   sp_rho  <- round(sp_test$estimate, 3)
 
-  cat("Spearman rho:", sp_rho, "\n")
-  cat("N countries: ", nrow(merged), "\n")
-
   ggplot(merged, aes(x = gii, y = gap)) +
     geom_point(
       aes(color = gap > 0),
@@ -171,34 +156,28 @@ plot_wage_gap_gii_correlation <- function(owid_data) {
       alpha = 0.75
     ) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey50", linewidth = 0.4) +
-    scale_color_manual(
-      values = c("FALSE" = "steelblue", "TRUE" = "#C0392B"),
-      labels = c("FALSE" = "Women earn more", "TRUE" = "Women earn less"),
-      name   = NULL
+    scale_color_presentation_binary(
+      negative_label = "Women earn more",
+      positive_label = "Women earn less",
+      name = NULL
     ) +
     scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     labs(
-      title    = "Gender Wage Gap vs. Gender Inequality Index",
+      title    = "Gender wage gap vs gender inequality index",
       subtitle = paste0(
-        "One point = one country | Most recent year 2020\u20132025 | ",
-        "n = ", nrow(merged), " | ",
-        "Spearman \u03C1 = ", sp_rho
+        "Most recent year, 2020-2025 | One point = one country | Spearman rho = ",
+        sp_rho
       ),
-      x       = "Gender Inequality Index (GII)  |  0 = fully equal, 1 = fully unequal",
-      y       = "Gender Wage Gap (%)",
-      caption = paste0(
-        "Source: ILO & UNDP via Our World in Data.  ",
-        "Wage gap = (male \u2212 female) / male \u00d7 100.  ",
-        "GII captures reproductive health, empowerment and labour market dimensions.\n",
-        "Most recent available year per country within 2020\u20132025.  "
+      x       = "Gender inequality index",
+      y       = "Gender wage gap (%)",
+      caption = paste(
+        "Source: Our World in Data.\n",
+        "The wage gap is defined as (male - female) / male * 100.\n",
+        "The most recent available year per country within 2020-2025 is used for both series."
       )
     ) +
-    theme_minimal(base_size = 11) +
     theme(
-      plot.title       = element_text(face = "bold", size = 13),
-      plot.subtitle    = element_text(color = "grey40", size = 9),
-      plot.caption     = element_text(color = "grey50", size = 7),
       legend.position  = "top",
       panel.grid.minor = element_blank()
     )

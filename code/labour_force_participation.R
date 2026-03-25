@@ -1,7 +1,7 @@
 library(tidyverse)
 library(here)
 
-#Load labour force participation raw data
+#Load labor force participation raw data
 load_labour_force_with_educ_data <- function() {
   read.csv(here("data", "raw", "ilo_labour_force_participation_and_education.csv.gz"))
 }
@@ -19,7 +19,7 @@ prepare_lfpr_data <- function(data) {
     )  #Select and rename relevant variables
   data <- data %>% filter(str_detect(education, "ISCED-11"), #Only one education scale
                           sex %in% c("Male", "Female"), #Only male/female rates
-                          !is.na(rate), #No NA´s for labour force particpation rate
+                           !is.na(rate), #No NA´s for labor force particpation rate
                           )
   data
 }
@@ -72,7 +72,23 @@ prepare_lfpr_2024_by_education <- function(data) {
     mutate(country = recode(country, #Rename countries
                             "Germany" = "Germany",
                             "Iran (Islamic Republic of)" = "Iran")) %>%
-    mutate(education = str_remove(education, "^Education \\(ISCED-11\\):")) #Rename education levels
+    mutate(
+      education = str_remove(education, "^Education \\(ISCED-11\\):"),
+      education = str_remove(education, "^\\s*\\d+\\.\\s*"),
+      education = str_remove(education, " level$"),
+      education = factor(
+        education,
+        levels = c(
+          "Primary education",
+          "Lower secondary education",
+          "Upper secondary education",
+          "Short-cycle tertiary education",
+          "Bachelor's or equivalent",
+          "Master's or equivalent",
+          "Doctoral or equivalent"
+        )
+      )
+    )
 
   data
 }
@@ -80,8 +96,17 @@ prepare_lfpr_2024_by_education <- function(data) {
 #Function to group education levels into four categories and calculate adjusted lfpr
 group_educ_and_recalculate_rates <- function(data) {
   data <- data %>% mutate(education_new = case_when( #Regroup education levels
-      str_detect(education, "equivalent|Short-cycle") ~ " 4. Tertiary education",
+      str_detect(as.character(education), "equivalent|Short-cycle") ~ "Tertiary education",
       TRUE ~ education
+    )) %>%
+    mutate(education_new = factor(
+      education_new,
+      levels = c(
+        "Primary education",
+        "Lower secondary education",
+        "Upper secondary education",
+        "Tertiary education"
+      )
     )) %>%
     group_by(country, sex, education_new) %>%
     summarise(rate = mean(rate, na.rm = TRUE),
@@ -94,10 +119,16 @@ group_educ_and_recalculate_rates <- function(data) {
 
 #Function to prepare intermediate data for third analysis - LFPR for tertiary education
 tertiary_educ_detailed <- function(data) {
-  data <- data %>% filter(str_detect(education,  #Filter for tertiary education
-                                     "Short-cycle|equivalent level")) %>%
-    mutate(education = ifelse(str_detect(education, "level"),
-                             str_remove(education, " level"),
-                             education)) #Rename education levels
+  data <- data %>% filter(str_detect(as.character(education),  #Filter for tertiary education
+                                     "Short-cycle|equivalent")) %>%
+    mutate(education = factor(
+      education,
+      levels = c(
+        "Short-cycle tertiary education",
+        "Bachelor's or equivalent",
+        "Master's or equivalent",
+        "Doctoral or equivalent"
+      )
+    ))
   data
 }

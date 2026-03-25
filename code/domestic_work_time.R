@@ -46,14 +46,19 @@ plot_domestic_work_region <- function(data) {
     ),
     variable.name = "sex"
   )
-  dt_long[, sex := factor(ifelse(sex == 1, "Women", "Men"), levels = c("Women", "Men"))]
+  dt_long[, sex := factor(ifelse(sex == 1, "Female", "Male"), levels = c("Female", "Male"))]
   custom_order <- c("Asia", "Africa", "South America", "North America", "Oceania", "Europe")
   dt_long[, region_label := factor(
     region_label,
     levels = dt_region[match(custom_order, region), region_label]
   )]
   ggplot(dt_long, aes(x = region_label, y = time_spent, fill = sex)) +
-    geom_col(position = "dodge", width = 0.7) +
+    geom_col(
+      position = "dodge",
+      width = 0.7,
+      color = unname(config.palette.presentation$ink),
+      linewidth = 0.5
+    ) +
     geom_errorbar(
       aes(ymin = q1, ymax = q3),
       position = position_dodge(width = 0.7),
@@ -62,7 +67,7 @@ plot_domestic_work_region <- function(data) {
       color = "black"
     ) +
     geom_text(
-      data = dt_long[sex == "Women"],
+      data = dt_long[sex == "Female"],
       aes(x     = as.numeric(region_label) - 0.175,
           y     = q3 + 1.5,
           label = paste0(ratio, "x")),
@@ -71,33 +76,22 @@ plot_domestic_work_region <- function(data) {
       size        = 3.2,
       color       = "grey20"
     ) +
-    scale_fill_manual(values = c("Women" = "red", "Men" = "blue")) +
+    scale_fill_sex() +
     scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
     labs(
-      title    = "Unpaid Domestic Work by Region and Gender",
-      subtitle = paste0(
-        "Median of country means | ",
-        uniqueN(dt$country), " countries | ",
-        min(dt$year), "\u2013", max(dt$year)
-      ),
+      title    = "Time spent in unpaid domestic work",
+      subtitle = paste0(uniqueN(dt$country), " countries | ", "By region and sex | Median of country means | ", min(dt$year), "-", max(dt$year)),
       x       = NULL,
       y       = "Time (% of day)",
-      fill    = "Gender",
+      fill    = "Sex",
       caption = paste0(
-        "Source: OWID.  Data: Country means computed over all available years from which regional median was extracted.",
-        "  IQR derived from country means in each region.\n",
-        "F/M Ratio shown above female bars = ratio of regional medians. ",
-        " n = number of countries per region. ",
-        " Error bars show IQR (Q1\u2013Q3) of country means."
+        "Source: Our World in Data.\n",
+        "Country means are computed over all available years, then aggregated to regional medians.\n",
+        "Error bars show the IQR of country means; labels above the female bars show the female-to-male ratio of regional medians."
       )
     ) +
-    theme_minimal(base_size = 11) +
     theme(
       axis.text.x        = element_text(angle = 35, hjust = 1, face = "bold", size = 9),
-      plot.title         = element_text(face = "bold", size = 13),
-      plot.subtitle      = element_text(color = "grey", size = 9),
-      plot.caption       = element_text(color = "grey", size = 7),
-      legend.position    = "top",
       panel.grid.major.x = element_blank()
     )
 }

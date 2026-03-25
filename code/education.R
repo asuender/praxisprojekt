@@ -32,7 +32,7 @@ prepare_uis_data <- function(files) {
   }), idcol = "indicator")
 
   DT[, sex := sub(".*_", "", indicator)]
-  DT[, sex := factor(sex, levels = c("female", "male"))]
+  DT[, sex := factor(sex, levels = c("female", "male"), labels = c("Female", "Male"))]
 
   setnames(DT, "geoUnit", "countryCode")
   DT[, country := countrycode(countryCode, origin = "iso3c", destination = "country.name")]
@@ -109,5 +109,4 @@ load_owid_gpi_data <- function() {
 
   DT[, .(educationLevel, countryCode, country, year, value)]
 }
-
 
