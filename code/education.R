@@ -110,3 +110,148 @@ load_owid_gpi_data <- function() {
   DT[, .(educationLevel, countryCode, country, year, value)]
 }
 
+prepare_gii_world_map_data <- function(gii, world, year = 2023) {
+  gii_latest <- gii[year == year]
+  merge(world, gii_latest, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
+}
+
+prepare_completion_global_latest <- function(completion, year = 2021) {
+  balanced_countries <- completion[year == year,
+    if (uniqueN(educationLevel) == 3 && uniqueN(sex) == 2) .SD,
+    by = country
+  ]$country |> unique()
+
+  completion[year == year & country %in% balanced_countries,
+    .(value = mean(value)), by = .(educationLevel, sex)
+  ]
+}
+
+prepare_completion_countries_time <- function(
+    completion,
+    countries,
+    year_range = c(2005, 2020)
+) {
+  completion_countries_time <- completion[
+    between(year, year_range[1], year_range[2]) & country %in% countries,
+    .(value = mean(value)),
+    by = .(country, year, sex)
+  ]
+
+  completion_countries_time[, country := factor(country, levels = countries)]
+  completion_countries_time
+}
+
+plot_gii_map <- function(gii_world) {
+  ggplot(gii_world) +
+    geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
+    scale_fill_presentation_sequential(
+      name = "GII", na.value = "grey80",
+      limits = c(0, 1)
+    ) +
+    coord_sf(ylim = c(-56, 90)) +
+    labs(
+      title = "Gender inequality index",
+      subtitle = "Global coverage | 2023",
+      caption = "Source: UNDP via Our World in Data.\nHigher values indicate greater inequality towards women."
+    ) +
+    theme(axis.text = element_blank(), axis.ticks = element_blank())
+}
+
+plot_gpi_map <- function(gpi, world, level) {
+  gpi_filtered <- gpi[year %in% c(2020, 2021) & educationLevel == level]
+  gpi_filtered <- gpi_filtered[, .SD[which.max(year)], by = .(countryCode, country)]
+  world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
+
+  ggplot(world_merged) +
+    geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
+    scale_fill_presentation_diverging(
+      name = "GPI", na.value = "grey80",
+      low = unname(config.palette.sex["Female"]),
+      high = unname(config.palette.sex["Male"]),
+      midpoint = 1,
+      limits = c(0.5, 1.5), oob = scales::squish
+    ) +
+    coord_sf(ylim = c(-56, 90)) +
+    labs(
+      title = "Gender parity index",
+      subtitle = "Latest available year in 2020-2021 | Female-to-male gross enrollment ratio"
+    ) +
+    theme(
+      legend.title = element_text(vjust = 0.75),
+      axis.text = element_blank(),
+      axis.ticks = element_blank()
+    )
+}
+
+plot_gpi_subplot <- function(gpi, world, level) {
+  plot_gpi_map(gpi, world, level) +
+    labs(title = level, subtitle = NULL) +
+    theme(
+      plot.title = element_text(size = 12, hjust = 0.5, margin = margin(b = 3)),
+      plot.margin = margin(t = 8, r = 2, b = 2, l = 2)
+    )
+}
+
+plot_gpi_combined <- function(gpi, world) {
+  (plot_gpi_subplot(gpi, world, "Primary") +
+      plot_gpi_subplot(gpi, world, "Lower secondary")) /
+    (plot_gpi_subplot(gpi, world, "Upper secondary") +
+      plot_gpi_subplot(gpi, world, "Tertiary")) +
+    plot_layout(guides = "collect") +
+    plot_annotation(
+      title = "Gender parity index",
+      subtitle = "Global coverage | By education level | Latest available year in 2020-2021",
+      caption = paste(
+        "Source: Our World in Data.\n",
+        "Values show the female-to-male gross enrollment ratio; 1 indicates parity."
+      )
+    ) &
+    theme(
+      legend.position = "bottom",
+      legend.key.width = unit(2, "cm")
+    )
+}
+
+plot_completion_global <- function(completion_global_latest) {
+  ggplot(completion_global_latest, aes(x = educationLevel, y = value, fill = sex)) +
+    geom_bar(
+      position = "dodge",
+      stat = "identity",
+      color = unname(config.palette.presentation$ink),
+      linewidth = 0.5
+    ) +
+    ylim(0, 100) +
+    scale_fill_sex() +
+    labs(
+      title = "Average completion rates",
+      subtitle = "49 countries | By sex and education level | 2021",
+      x = "Education level",
+      y = "Average completion rate (%)",
+      fill = "Sex",
+      caption = paste(
+        "Source: UNESCO Institute of Statistics.\n",
+        "Includes countries with complete observations across all three education levels and both sexes in 2021."
+      )
+    )
+}
+
+plot_completion_countries_time <- function(completion_countries_time) {
+  ggplot(completion_countries_time, aes(x = year, y = value, color = sex)) +
+    geom_line() +
+    geom_point() +
+    ylim(40, 100) +
+    scale_color_sex() +
+    facet_wrap(~country, nrow = 2) +
+    theme(panel.spacing.x = unit(2.5, "lines")) +
+    labs(
+      title = "Completion rates",
+      subtitle = "Selected countries | Averaged across education levels | 2005-2020",
+      x = "Year",
+      y = "Average completion rate (%)",
+      color = "Sex",
+      caption = paste(
+        "Source: UNESCO Institute of Statistics.\n",
+        "Values are country-year means across primary, lower secondary, and upper secondary completion rates."
+      )
+    )
+}

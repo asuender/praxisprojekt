@@ -132,3 +132,88 @@ tertiary_educ_detailed <- function(data) {
     ))
   data
 }
+
+plot_lfpr_selected_countries <- function(lf_total_2024_comparison) {
+  lf_total_2024_comparison %>%
+    ggplot(aes(x = country, y = rate, fill = sex)) +
+    geom_bar(
+      stat = "identity",
+      position = "dodge",
+      color = unname(config.palette.presentation$ink),
+      linewidth = 0.5
+    ) +
+    labs(
+      title = "Labor force participation rates",
+      subtitle = "Selected countries | By sex | 2024",
+      x = "Country",
+      y = "Labor force participation rate (%)",
+      fill = "Sex",
+      caption = "Source: ILOSTAT."
+    ) +
+    scale_fill_sex() +
+    scale_y_continuous(limits = c(0, 90), breaks = seq(0, 90, 20))
+}
+
+plot_lfpr_germany_time <- function(lf_GER_2010_to_2024) {
+  lf_GER_2010_to_2024 %>%
+    ggplot(aes(x = year, y = rate, color = sex)) +
+    geom_line() +
+    geom_point() +
+    labs(
+      title = "Labor force participation rate",
+      subtitle = "Germany | By sex | 2010-2024",
+      x = "Year",
+      y = "Labor force participation rate (%)",
+      color = "Sex",
+      caption = "Source: ILOSTAT."
+    ) +
+    scale_color_sex() +
+    scale_x_continuous(limits = c(2010, 2025), breaks = c(2010, 2015, 2020, 2025)) +
+    scale_y_continuous(limits = c(0, 70), breaks = seq(0, 70, 10))
+}
+
+plot_lfpr_by_education <- function(lf_2024_educ_grouped, country_name) {
+  lf_2024_educ_grouped %>%
+    filter(country == country_name) %>%
+    ggplot(aes(x = country, y = rate, fill = sex)) +
+    geom_bar(
+      stat = "identity",
+      position = "dodge",
+      color = unname(config.palette.presentation$ink),
+      linewidth = 0.5
+    ) +
+    labs(
+      title = "Labor force participation rate",
+      subtitle = paste(country_name, "| By sex and education level | 2024"),
+      x = NULL,
+      y = "Labor force participation rate (%)",
+      fill = "Sex",
+      caption = "Source: ILOSTAT."
+    ) +
+    scale_fill_sex() +
+    theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
+    facet_wrap(~ education_new)
+}
+
+plot_lfpr_tertiary <- function(lf_2024_tert_educ, country_name) {
+  lf_2024_tert_educ %>%
+    filter(country == country_name) %>%
+    ggplot(aes(x = country, y = rate, fill = sex)) +
+    geom_bar(
+      stat = "identity",
+      position = "dodge",
+      color = unname(config.palette.presentation$ink),
+      linewidth = 0.5
+    ) +
+    labs(
+      title = "Labor force participation rate",
+      subtitle = paste(country_name, "| By sex and tertiary education | 2024"),
+      x = NULL,
+      y = "Labor force participation rate (%)",
+      fill = "Sex",
+      caption = "Source: ILOSTAT.\nRestricted to detailed tertiary education categories."
+    ) +
+    scale_fill_sex() +
+    theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
+    facet_wrap(~ education)
+}
