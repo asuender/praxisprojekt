@@ -87,7 +87,7 @@ plot_domestic_work_region <- function(data) {
         "Data represents country means computed over all available years from which regional median was extracted.\n",
         "F/M Ratio shown above female bars which represents ratio of regional medians.\n",
         "n = number of countries per region.\n",
-        "Error bars show IQR (Q1\u2013Q3) of country means."
+        "IQR (Q1\u2013Q3) of country means shown for each median."
       )
     ) +
     theme_minimal(base_size = 11) +
