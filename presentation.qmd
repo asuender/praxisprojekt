@@ -1,7 +1,7 @@
 ---
 title: "Gender inequality"
 subtitle: "Statistical project (LMU Munich)"
-author: "Andreas Sünder, Miriam Haf, Jinwook Bae, Xuchen Shen"
+author: "Andreas Sünder, Jinwook Bae, Miriam Haf, Xuchen Shen"
 date: today
 date-format: "MMMM D, YYYY"
 lang: en
@@ -203,3 +203,29 @@ plot_lfpr_tertiary(lf_2024_tert_educ, "Germany")
 ```{r - Labor force participation in Iran, tertiary education}
 plot_lfpr_tertiary(lf_2024_tert_educ, "Iran")
 ```
+
+---
+
+## Gender inequality index (GII)
+
+![](assets/gii_diagram.png)
+
+<small>Source: [UNDP Human Development Reports](https://hdr.undp.org/data-center/thematic-composite-indices/gender-inequality-index#/indicies/GII)</small>
+
+---
+
+## Gender parity index (GPI)
+
+The Gender parity index (GPI) measures the relative access to education for females compared to males.
+
+**Calculation:**
+
+$$
+\text{GPI} = \frac{\frac{\text{Female enrollment}}{\text{Female school-age population}}}{\frac{\text{Male enrollment}}{\text{Male school-age population}}}
+$$
+
+**Interpretation:**
+
+- **GPI = 1**: Gender parity (equal access)
+- **GPI < 1**: Disparity in favor of males
+- **GPI > 1**: Disparity in favor of females

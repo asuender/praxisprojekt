@@ -88,11 +88,7 @@ plot_wage_gap_distribution <- function(owid_data) {
       subtitle = paste0(n_countries, " countries | By region | Median of country medians | 2000-2025"),
       x        = NULL,
       y        = "Wage gap (%)",
-      caption  = paste0(
-        "Source: Our World in Data.\n",
-        "Country medians are computed over all available years, then aggregated to regional medians.\n",
-        "Error bars show the IQR of country medians. Positive values (blue) indicate women earn less than men."
-      )
+      caption  = "Source: Our World in Data.",
     ) +
     theme(
       axis.text.x        = element_text(angle = 35, hjust = 1, face = "bold", size = 9),

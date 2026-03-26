@@ -249,7 +249,7 @@ plot_lfpr_tertiary <- function(lf_2024_tert_educ, country_name) {
       x = NULL,
       y = "Labor force participation rate (%)",
       fill = "Sex",
-      caption = "Source: ILOSTAT.\nRestricted to detailed tertiary education categories."
+      caption = "Source: ILOSTAT."
     ) +
     scale_fill_sex() +
     theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
