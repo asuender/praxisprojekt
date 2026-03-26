@@ -136,13 +136,44 @@ tertiary_educ_detailed <- function(data) {
 }
 
 plot_lfpr_selected_countries <- function(lf_total_2024_comparison) {
-  lf_total_2024_comparison %>%
+  bar_width <- 0.7
+  country_levels <- unique(lf_total_2024_comparison$country)
+
+  plot_data <- lf_total_2024_comparison %>%
+    mutate(
+      country = factor(country, levels = country_levels),
+      sex = factor(sex, levels = c("Female", "Male"))
+    )
+
+  ratio_data <- plot_data %>%
+    select(country, sex, rate) %>%
+    tidyr::pivot_wider(names_from = sex, values_from = rate) %>%
+    mutate(
+      ratio = round(Male / Female, 2),
+      label_y = Male + 4
+    )
+
+  upper_limit <- max(90, ceiling(max(ratio_data$label_y + 2, na.rm = TRUE) / 10) * 10)
+
+  plot_data %>%
     ggplot(aes(x = country, y = rate, fill = sex)) +
-    geom_bar(
-      stat = "identity",
+    geom_col(
       position = "dodge",
+      width = bar_width,
       color = unname(config.palette.presentation$ink),
       linewidth = 0.5
+    ) +
+    geom_text(
+      data = ratio_data,
+      aes(
+        x = as.numeric(country) + bar_width / 4,
+        y = label_y,
+        label = paste0(ratio, "x")
+      ),
+      inherit.aes = FALSE,
+      fontface = "bold",
+      size = 3.2,
+      color = "grey20"
     ) +
     labs(
       title = "Labor force participation rates",
@@ -150,10 +181,17 @@ plot_lfpr_selected_countries <- function(lf_total_2024_comparison) {
       x = "Country",
       y = "Labor force participation rate (%)",
       fill = "Sex",
-      caption = "Source: ILOSTAT."
+      caption = paste0(
+        "Source: ILOSTAT.\n",
+        "Labels above the male bars show the male-to-female participation rate ratio."
+      )
     ) +
     scale_fill_sex() +
-    scale_y_continuous(limits = c(0, 90), breaks = seq(0, 90, 20))
+    scale_y_continuous(
+      limits = c(0, upper_limit),
+      breaks = seq(0, upper_limit, 20),
+      expand = expansion(mult = c(0, 0.08))
+    )
 }
 
 plot_lfpr_germany_time <- function(lf_GER_2010_to_2024) {
