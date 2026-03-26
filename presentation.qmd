@@ -186,15 +186,15 @@ plot_wage_gap_gii_correlation(wage_gap)
 
 # Conclusion
 
-<!-- TODO -->
+## Summary & Discussion
 
-## Summary
+- Generally, education commitment leans towards women
+- Across all other aspects, there exists general inequality towards women
 
-<!-- TODO -->
+However, the following may be noted:
 
-## Discussion
-
--   Missing values impede data aggregation on a global scale
--   Data shows limited availability across indicators examined
+- Data shows limited availability across indicators examined
+- Our country-based data is predominantly led by economically developed countries
+- Our analysis misses further topics covered by the GII
 
 # Thank you very much!
