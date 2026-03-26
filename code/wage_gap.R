@@ -150,16 +150,26 @@ plot_wage_gap_gii_correlation <- function(owid_data) {
 
   ggplot(merged, aes(x = gii, y = gap)) +
     geom_point(
-      aes(color = gap > 0),
+      aes(fill = gap > 0),
       size  = 2.5,
-      alpha = 0.75
+      alpha = 0.75,
+      shape = 21,
+      color = unname(config.palette.presentation$ink),
+      stroke = 0.45
     ) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey50", linewidth = 0.4) +
-    scale_color_presentation_binary(
+    scale_fill_presentation_binary(
       negative_label = "Women earn more",
       positive_label = "Women earn less",
       name = NULL
     ) +
+    guides(fill = guide_legend(override.aes = list(
+      size = 4.5,
+      alpha = 1,
+      shape = 21,
+      stroke = 0.45,
+      color = unname(config.palette.presentation$ink)
+    ))) +
     scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     labs(

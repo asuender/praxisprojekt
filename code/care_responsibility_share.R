@@ -97,16 +97,20 @@ plot_care_country_gap <- function(data, n_countries = 20) {
   selected <- c(head(dt_wide$country, n_countries / 2),
                 tail(dt_wide$country, n_countries / 2))
   dt_plot <- dt_wide[country %in% selected]
+  dt_plot[, highlight := fcase(
+    country %in% tail(dt_wide$country, n_countries / 2), "High care gap (top 10)",
+    country %in% head(dt_wide$country, n_countries / 2), "Low care gap (bottom 10)"
+  )]
 
   # country label with year appended
   dt_plot[, country_label := paste0(country, " (", year, ")")]
 
   ggplot(dt_plot, aes(x = gap,
                       y = reorder(country_label, gap),
-                      color = gap)) +
+                      color = highlight)) +
     geom_vline(xintercept = 0, color = "grey50", linetype = "dashed") +
     geom_point(
-      aes(fill = gap),
+      aes(fill = highlight),
       size = 3.2,
       shape = 21,
       stroke = 0.45,
@@ -116,16 +120,8 @@ plot_care_country_gap <- function(data, n_countries = 20) {
                      y = reorder(country_label, gap),
                      yend = reorder(country_label, gap)),
                  linewidth = 0.5, alpha = 0.5) +
-    scale_color_presentation_diverging(
-      low = unname(config.palette.sex["Male"]),
-      high = unname(config.palette.sex["Female"]),
-      midpoint = 0
-    ) +
-    scale_fill_presentation_diverging(
-      low = unname(config.palette.sex["Male"]),
-      high = unname(config.palette.sex["Female"]),
-      midpoint = 0
-    ) +
+    scale_color_manual(values = config.palette.care_highlight, name = NULL) +
+    scale_fill_manual(values = config.palette.care_highlight, name = NULL) +
     scale_x_continuous(labels = function(x) paste0(x, "%"),
                        expand = expansion(mult = c(0.05, 0.08))) +
     labs(
@@ -197,15 +193,23 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
                       method = "spearman", use = "complete.obs"), 3)
 
 
-  ggplot(merged, aes(x = lfp_gap, y = care_gap, color = highlight)) +
-    geom_point(aes(size  = ifelse(highlight == "Other", 2.0, 2.8),
-                   alpha = ifelse(highlight == "Other", 0.4, 0.9))) +
+  ggplot(merged, aes(x = lfp_gap, y = care_gap)) +
+    geom_point(
+      aes(
+        fill = highlight,
+        size = ifelse(highlight == "Other", 2.0, 2.8),
+        alpha = ifelse(highlight == "Other", 0.4, 0.9)
+      ),
+      shape = 21,
+      color = unname(config.palette.presentation$ink),
+      stroke = 0.45
+    ) +
     scale_size_identity() +
     scale_alpha_identity() +
     ggrepel::geom_text_repel(
       data          = merged[country %in% label_countries],
       aes(label     = country),
-      color         = unname(config.palette.sex["Female"]),
+      color         = unname(config.palette.care_highlight["High care gap (top 10)"]),
       size          = 3.0,
       fontface      = "bold",
       box.padding   = 0.5,
@@ -214,14 +218,17 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
       segment.size  = 0.3,
       show.legend   = FALSE
     ) +
-    scale_color_manual(
-      values = c(
-        "High care gap (top 10)"   = unname(config.palette.sex["Female"]),
-        "Low care gap (bottom 10)" = unname(config.palette.sex["Male"]),
-        "Other"                    = "grey70"
-      ),
+    scale_fill_manual(
+      values = config.palette.care_highlight,
       name = NULL
     ) +
+    guides(fill = guide_legend(override.aes = list(
+      size = 4.5,
+      alpha = 1,
+      shape = 21,
+      stroke = 0.45,
+      color = unname(config.palette.presentation$ink)
+    ))) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
     geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
     labs(

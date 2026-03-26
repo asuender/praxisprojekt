@@ -142,6 +142,12 @@ config.labels.sex <- c(
   "male" = "Male"
 )
 
+config.palette.care_highlight <- c(
+  "High care gap (top 10)" = "#6B5B95",
+  "Low care gap (bottom 10)" = "#D4AC0D",
+  "Other" = "grey70"
+)
+
 scale_fill_sex <- function(name = "Sex", ...) {
   scale_fill_manual(values = config.palette.sex, labels = config.labels.sex, name = name, ...)
 }
