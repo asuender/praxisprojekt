@@ -121,7 +121,7 @@ config.dataset.urls <- list(
 
 config.palette.presentation <- list(
   female = "#f46f67",
-  male = "#17a0a6",
+  male = "#2563eb",
   neutral = "#e8e0d5",
   grid = "#b8b8b8",
   ink = "#3f3f3f",
