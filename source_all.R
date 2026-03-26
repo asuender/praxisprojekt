@@ -1,5 +1,6 @@
-library(tidyverse)
+library(ggplot2)
 library(here)
+library(rnaturalearthdata)
 library(rnaturalearth)
 library(sf)
 library(countrycode)

@@ -38,13 +38,13 @@ config.dataset.urls <- list(
     filename = "owid_gii.csv"
   ),
 
-  # Labour force participation
+  # Labor force participation
   list(
     url = "https://rplumber.ilo.org/data/indicator/?id=EAP_DWAP_SEX_AGE_RT_A&lang=en&type=label&format=.csv.gz&channel=ilostat",
     filename = "ilo_labour_force_participation.csv.gz"
   ),
 
-  # Labour Force Participation and Education
+  # Labor force participation and education
   list(
     url = "https://rplumber.ilo.org/data/indicator/?id=EAP_DWAP_SEX_EDU_RT_A&timefrom=1970&timeto=2025&type=label&format=.csv.gz",
     filename = "ilo_labour_force_participation_and_education.csv.gz"
@@ -119,15 +119,144 @@ config.dataset.urls <- list(
   )
 )
 
+config.palette.presentation <- list(
+  female = "#f46f67",
+  male = "#2563eb",
+  neutral = "#e8e0d5",
+  grid = "#b8b8b8",
+  ink = "#3f3f3f",
+  na = "#d8d8d8"
+)
+
+config.palette.sex <- c(
+  "Female" = config.palette.presentation$female,
+  "Male" = config.palette.presentation$male,
+  "female" = config.palette.presentation$female,
+  "male" = config.palette.presentation$male
+)
+
+config.labels.sex <- c(
+  "Female" = "Female",
+  "Male" = "Male",
+  "female" = "Female",
+  "male" = "Male"
+)
+
+config.palette.care_highlight <- c(
+  "High care gap (top 10)" = "#6B5B95",
+  "Low care gap (bottom 10)" = "#B8930A",
+  "Other" = "#666666"
+)
+
+scale_fill_sex <- function(name = "Sex", ...) {
+  scale_fill_manual(values = config.palette.sex, labels = config.labels.sex, name = name, ...)
+}
+
+scale_color_sex <- function(name = "Sex", ...) {
+  scale_color_manual(values = config.palette.sex, labels = config.labels.sex, name = name, ...)
+}
+
+scale_fill_presentation_sequential <- function(
+    name = waiver(),
+    low = config.palette.presentation$neutral,
+    high = config.palette.presentation$female,
+    na.value = config.palette.presentation$na,
+    ...
+) {
+  scale_fill_gradient(
+    low = low,
+    high = high,
+    name = name,
+    na.value = na.value,
+    ...
+  )
+}
+
+scale_fill_presentation_diverging <- function(
+    name = waiver(),
+    low,
+    high,
+    mid = config.palette.presentation$neutral,
+    midpoint = 0,
+    na.value = config.palette.presentation$na,
+    ...
+) {
+  scale_fill_gradient2(
+    low = low,
+    mid = mid,
+    high = high,
+    midpoint = midpoint,
+    name = name,
+    na.value = na.value,
+    ...
+  )
+}
+
+scale_color_presentation_diverging <- function(
+    name = waiver(),
+    low,
+    high,
+    mid = config.palette.presentation$neutral,
+    midpoint = 0,
+    ...
+) {
+  scale_color_gradient2(
+    low = low,
+    mid = mid,
+    high = high,
+    midpoint = midpoint,
+    name = name,
+    ...
+  )
+}
+
+scale_fill_presentation_binary <- function(
+    name = waiver(),
+    negative_label,
+    positive_label,
+    negative = config.palette.presentation$male,
+    positive = config.palette.presentation$female,
+    ...
+) {
+  scale_fill_manual(
+    values = c("FALSE" = negative, "TRUE" = positive),
+    labels = c("FALSE" = negative_label, "TRUE" = positive_label),
+    name = name,
+    ...
+  )
+}
+
+scale_color_presentation_binary <- function(
+    name = waiver(),
+    negative_label,
+    positive_label,
+    negative = config.palette.presentation$male,
+    positive = config.palette.presentation$female,
+    ...
+) {
+  scale_color_manual(
+    values = c("FALSE" = negative, "TRUE" = positive),
+    labels = c("FALSE" = negative_label, "TRUE" = positive_label),
+    name = name,
+    ...
+  )
+}
+
 theme_set(
   theme_light(base_size = 14) +
     theme(
-      plot.title = element_text(hjust = 0.5),
+      plot.title = element_text(hjust = 0.5, face = "bold", color = config.palette.presentation$ink),
       plot.subtitle = element_text(hjust = 0.5),
+      plot.caption = element_text(size = 9, color = "grey30", hjust = 1, margin = margin(t = 10)),
+      plot.caption.position = "plot",
       axis.title.x = element_text(margin = margin(t = 10)),
       axis.title.y = element_text(margin = margin(r = 10)),
-      panel.border = element_rect(colour = "black", fill=NA, linewidth=1),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = config.palette.presentation$grid, linewidth = 0.3),
+      panel.border = element_rect(color = config.palette.presentation$ink, fill = NA, linewidth = 0.8),
       strip.background = element_blank(),
-      strip.text = element_text(color = "black")
+      strip.text = element_text(color = config.palette.presentation$ink, face = "bold"),
+      legend.background = element_rect(fill = "white", color = NA),
+      legend.key = element_rect(fill = "white", color = NA)
     )
 )

@@ -1,7 +1,7 @@
 ---
-title: "Gender Inequality"
+title: "Gender inequality"
 subtitle: "Statistical project (LMU Munich)"
-author: "Jinwook Bae, Miriam Haf, Xuchen Shen, Andreas Sünder"
+author: "Andreas Sünder, Jinwook Bae, Miriam Haf, Xuchen Shen"
 date: today
 date-format: "MMMM D, YYYY"
 lang: en
@@ -31,74 +31,30 @@ COUNTRIES_FOR_COMPLETION <- c("Germany", "Brazil", "Nigeria", "Dominican Republi
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
 gii <- load_owid_gii_data()
-gii.latest <- gii[year == 2023]
-gii_world <- merge(world, gii.latest, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
-
-completion <- load_uis_completion_rates()
-balanced.countries.compl <- completion[year == 2021,
-  if (uniqueN(educationLevel) == 3 && uniqueN(sex) == 2) .SD,
-  by = country
-]$country |> unique()
-completion.global.latest <- completion[year == 2021 & country %in% balanced.countries.compl,
-  .(value = mean(value)), by = .(educationLevel, sex)
-]
-completion.countries.time <- completion[between(year, 2005, 2020) & country %in% COUNTRIES_FOR_COMPLETION, .(value = mean(value)), by = .(country, year, sex)]
-completion.countries.time[, country := factor(country, levels = COUNTRIES_FOR_COMPLETION)]
+gii_world <- prepare_gii_world_map_data(gii, world)
 
 gpi <- load_owid_gpi_data()
-# we outsource the repeating tasks for each education level
-# to avoid duplicated code segments
-plot_gpi_map <- function(data, level) {
-  # Filter for 2020 and 2021, then pick the latest available year per country
-  gpi_filtered <- data[year %in% c(2020, 2021) & educationLevel == level]
-  gpi_filtered <- gpi_filtered[, .SD[which.max(year)], by = .(countryCode, country)]
-  world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
 
-  ggplot(world_merged) +
-    geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
-    scale_fill_gradient2(
-      midpoint = 1, low = "#b2182b", mid = "#ffffbf", high = "#2166ac",
-      name = "GPI", na.value = "grey80",
-      limits = c(0.5, 1.5), oob = scales::squish
-    ) +
-    coord_sf(ylim = c(-56, 90)) +
-    labs(title = paste("Gender Parity Index -", level, "education"), subtitle = "Expressed as the ratio between the GER of females and males (latest of 2020/2021)") +
-    theme(legend.title = element_text(vjust = 0.75), axis.text = element_blank(), axis.ticks = element_blank())
-}
+completion <- load_uis_completion_rates()
+completion.global.latest <- prepare_completion_global_latest(completion)
+completion.countries.time <- prepare_completion_countries_time(completion, COUNTRIES_FOR_COMPLETION)
 
-# this is an experimental function that is used by
-# the combined GPI plot as it requires inducing some custom
-# spacing to make the map use the available space efficiently
-gpi_subplot <- function(level) {
-  plot_gpi_map(gpi, level) +
-    labs(title = level, subtitle = NULL) +
-    theme(
-      plot.title = element_text(size = 12, hjust = 0.5, margin = margin(b = 3)),
-      plot.margin = margin(t = 8, r = 2, b = 2, l = 2)
-    )
-}
-
+lfp <- load_lfp_data()
 labour_force_with_educ <- load_labour_force_with_educ_data()
 labour_force_with_educ_cleaned <- prepare_lfpr_data(labour_force_with_educ)
-
 lf_total_2024_comparison <-
   prepare_lfpr_total_2024_comp(labour_force_with_educ_cleaned)
-
 lf_GER_2010_to_2024 <-
   prepare_lfpr_GER_2010_to_2024(labour_force_with_educ_cleaned)
-
 lf_2024_by_education <-
   prepare_lfpr_2024_by_education(labour_force_with_educ_cleaned)
 lf_2024_educ_groupped <- group_educ_and_recalculate_rates(lf_2024_by_education)
 lf_2024_tert_educ <- tertiary_educ_detailed(lf_2024_by_education)
 
-
-wage_gap <- load_gender_wage_gap_data()
-
-# Load care work and domestic work data
 owid_domestic_work_time <- load_care_time_share_data()
 care_responsibilities_share <- load_care_resp_share_data()
-lfp <- load_lfp_data()
+
+wage_gap <- load_gender_wage_gap_data()
 ```
 
 ## Agenda
@@ -106,9 +62,9 @@ lfp <- load_lfp_data()
 1. Motivation
 2. Data Analysis:
 
-    - Gender Differences in **Education**, **Labor Force Participation**, **Care Work** and **Income**
+    - Gender differences in **education**, **care work**, **labor force participation**, and **income**
     - Variation across countries and over time
-    - Correlation with other development-related indicators
+    - Correlation across examined metrics
    
 3. Summary
 4. Discussion
@@ -118,19 +74,10 @@ lfp <- load_lfp_data()
 ---
 
 ```{r gii}
-ggplot(gii_world) +
-  geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
-  scale_fill_distiller(
-    palette = "YlOrRd", direction = 1,
-    name = "GII", na.value = "grey80",
-    limits = c(0, 1)
-  ) +
-  coord_sf(ylim = c(-56, 90)) +
-  labs(title = "Gender Inequality Index, 2023") +
-  theme(axis.text = element_blank(), axis.ticks = element_blank())
+plot_gii_map(gii_world)
 ```
 
-## Data sets & Methodology
+## Data sets & methodology
 
 Our analysis is based on data sets gathered from the following sources:
 
@@ -143,179 +90,76 @@ Our analysis is based on data sets gathered from the following sources:
 ---
 
 ```{r gpi-all-combined, fig.width=12, fig.height=7}
-(gpi_subplot("Primary") + gpi_subplot("Lower secondary")) /
-(gpi_subplot("Upper secondary") + gpi_subplot("Tertiary")) +
-  plot_layout(guides = "collect") +
-  plot_annotation(
-    title = "Gender Parity Index by Education Level",
-    subtitle = "Ratio of female to male gross enrollment ratio (latest of 2020/2021)"
-  ) &
-  theme(
-    legend.position = "bottom",
-    legend.key.width = unit(2, "cm")
-  )
+plot_gpi_combined(gpi, world)
 ```
 
 ---
 
 ```{r completion-global-latest}
-ggplot(completion.global.latest, aes(x = educationLevel, y = value, fill = sex)) +
-  geom_bar(position = "dodge", stat = "identity", color = "black", linewidth = 0.5) +
-  ylim(0, 100) +
-  labs(title = "Average completion rates (n = 49 countries)", subtitle = "Shown by Sex and Education level, 2021", x = "Education level", y = "Average completion rate", fill = "Sex")
+plot_completion_global(completion.global.latest)
 ```
 
 ---
 
 ```{r completion-countries-time}
-ggplot(completion.countries.time, aes(x = year, y = value, color = sex)) +
-  geom_line() +
-  geom_point() +
-  ylim(40, 100) +
-  facet_wrap(~country, nrow = 2) +
-  theme(panel.spacing.x = unit(2.5, "lines")) +
-  labs(title = "Completion rates for selected countries over time", subtitle = "Averaged across primary, lower secondary, and upper secondary education", x = "Year", y = "Average completion rate", color = "Sex")
+plot_completion_countries_time(completion.countries.time)
+```
+
+# Care work
+
+---
+
+```{r}
+plot_domestic_work_region(owid_domestic_work_time)
+```
+
+---
+
+```{r}
+plot_care_share_facet(care_responsibilities_share)
+```
+
+---
+
+```{r}
+plot_care_country_gap(care_responsibilities_share)
+```
+
+---
+
+```{r}
+plot_care_lfp_correlation(care_responsibilities_share, lfp)
 ```
 
 # Labor force participation
 
 ---
 
-```{r - Labour force participation, country comparison}
-lf_total_2024_comparison %>% 
-  ggplot(aes(x = country, y = rate, fill = sex)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Labour Force Participation Rate in 2024 by Gender",
-        x = "Country",
-        y = "Labour Force Participation Rate in %",
-        fill = "Biological Gender") +
-  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
-  scale_y_continuous(limits = c(0,90), breaks = seq(0,90,20)) +
-  theme_light()
+```{r - Labor force participation, country comparison}
+plot_lfpr_selected_countries(lf_total_2024_comparison)
 ```
 
 ---
 
-```{r - Labour force participation in Germany over time}
-lf_GER_2010_to_2024 %>%
-  ggplot(aes(x = year, y = rate, colour = sex)) + geom_line() + geom_point() +
-  labs(title = "Labour Force Participation Rate in Germany between 2010 and 2024",
-       x = "Year",
-       y = "Labour Force Participation Rate in %",
-       colour = "Biological Gender") +
-  scale_color_manual(values = c("Female" = "red", "Male" = "blue")) +
-  scale_y_continuous(limits = c(0,70), breaks = seq(0,70,10)) + 
-  theme_light()
+```{r - Labor force participation in Germany over time}
+plot_lfpr_germany_time(lf_GER_2010_to_2024)
 ```
 
 ---
 
-```{r - Labour force participation in Germany over time (Zoom)}
-lf_GER_2010_to_2024 %>%
-  ggplot(aes(x = year, y = rate, colour = sex)) + geom_line() + geom_point() +
-  labs(title = "Labour Force Participation Rate in Germany between 2010 and 2024",
-       subtitle = "Zoomed in",
-       x = "Year",
-       y = "Labour Force Participation Rate in %",
-       colour = "Biological Gender") +
-  scale_color_manual(values = c("Female" = "red", "Male" = "blue")) +
-  theme_light() 
+```{r - Labor force participation in Germany by education}
+plot_lfpr_by_education(lf_2024_educ_groupped, "Germany")
 ```
 
 ---
 
-```{r - Labour force participation in Germany by education}
-lf_2024_educ_groupped %>% filter(country == "Germany") %>%
-  ggplot(aes(x = country, y = rate, fill = sex)) + 
-  geom_bar(stat = "identity", position = "dodge") + 
-  labs(title = "Labour Force Participation Rate by Gender and Education Level",
-       subtitle = "Germany, 2024",
-        x = "Country",
-        y = "Labour Force Participation Rate in %",
-        fill = "Biological Gender") +
-  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
-  facet_wrap(~ education_new) +
-  theme_light() 
-```
-
----
-
-```{r - Labour force participation in Germany, tertiary education}
-lf_2024_tert_educ %>% filter(country == "Germany") %>%
-  ggplot(aes(x = country, y = rate, fill = sex)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Labour Force Participation Rate by Gender - Tertiary Education",
-       subtitle = "Germany, 2024",
-        x = "Country",
-        y = "Labour Force Participation Rate in %",
-        fill = "Biological Gender") +
-  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
-  facet_wrap(~ education) +
-  theme_light()
-```
-
----
-
-```{r - Labour force participation in Iran by education}
-lf_2024_educ_groupped %>% filter(country == "Iran") %>%
-  ggplot(aes(x = country, y = rate, fill = sex)) + 
-  geom_bar(stat = "identity", position = "dodge") + 
-  labs(title = "Labour Force Participation Rate by Gender and Education Level",
-       subtitle = "Iran, 2024",
-        x = "Country",
-        y = "Labour Force Participation Rate in %",
-        fill = "Biological Gender") +
-  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
-  facet_wrap(~ education_new) +
-  theme_light()
-```
-
----
-
-```{r - Labour force participation in Iran, tertiary education}
-lf_2024_tert_educ %>% filter(country == "Iran") %>%
-  ggplot(aes(x = country, y = rate, fill = sex)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Labour Force Participation Rate by Gender - Tertiary Education",
-       subtitle = "Iran, 2024",
-        x = "Country",
-        y = "Labour Force Participation Rate in %",
-        fill = "Biological Gender") +
-  scale_fill_manual(values = c("Female" = "red", "Male" = "blue")) +
-  facet_wrap(~ education) +
-  theme_light()
-```
-
-
-# Care Work
-
-## Differences in Care Work
-
-```{r}
-plot_domestic_work_region(owid_domestic_work_time)
-```
-
-## Care Responsibilities Keeping People Out of Work
-
-```{r}
-plot_care_share_facet(care_responsibilities_share)
-```
-
-## Gap in Care Responsibility Share Amongst Countries
-
-```{r}
-plot_care_country_gap(care_responsibilities_share)
-```
-
-## Labour Force Participation vs Care Responsibility Share
-
-```{r}
-plot_care_lfp_correlation(care_responsibilities_share, lfp)
+```{r - Labor force participation in Iran by education}
+plot_lfpr_by_education(lf_2024_educ_groupped, "Iran")
 ```
 
 # Income
- 
-## Wage gap distribution across countries
+
+---
 
 ```{r}
 plot_wage_gap_distribution(wage_gap)
@@ -323,38 +167,65 @@ plot_wage_gap_distribution(wage_gap)
 
 ---
 
-## Wage gap over time in selected countries
-
 ```{r}
 plot_wage_gap_facet(wage_gap)
 ```
 
 ---
 
-## Wage gap and broader gender inequality
-
 ```{r}
-plot_wage_gap_gii_correlation(wage_gap)
+plot_wage_gap_gii_correlation(gii, wage_gap)
 ```
-
-<!-- Legacy income slides kept for reference.
-Old slide 1: plot_wage_gap_trend(trend_gap)
-Old slide 2: plot_wage_gap_top_countries(top_countries, latest_year)
-Old slide 3: plot_wage_gap_change(change_full, first_year, last_year)
-Old slide 4: plot_wage_gap_change(change_1920, 2019, 2020)
--->
 
 # Conclusion
 
-<!-- TODO -->
+## Summary & Discussion
 
-## Summary
+- Generally, education commitment leans towards women
+- Across all other aspects, there exists general inequality towards women
 
-<!-- TODO -->
+However, the following may be noted:
 
-## Discussion
+- Data shows limited availability across indicators examined
+- Our country-based data is predominantly led by economically developed countries
+- Our analysis misses further topics covered by the GII
 
--   Missing values impede data aggregation on a global scale
--   Data shows limited availability across indicators examined
+# Appendix
 
-# Thank you very much!
+---
+
+```{r - Labor force participation in Germany, tertiary education}
+plot_lfpr_tertiary(lf_2024_tert_educ, "Germany")
+```
+
+---
+
+```{r - Labor force participation in Iran, tertiary education}
+plot_lfpr_tertiary(lf_2024_tert_educ, "Iran")
+```
+
+---
+
+## Gender inequality index (GII)
+
+![](assets/gii_diagram.png)
+
+<small>Source: [UNDP Human Development Reports](https://hdr.undp.org/data-center/thematic-composite-indices/gender-inequality-index#/indicies/GII)</small>
+
+---
+
+## Gender parity index (GPI)
+
+The Gender parity index (GPI) measures the relative access to education for females compared to males.
+
+**Calculation:**
+
+$$
+\text{GPI} = \frac{\frac{\text{Female enrollment}}{\text{Female school-age population}}}{\frac{\text{Male enrollment}}{\text{Male school-age population}}}
+$$
+
+**Interpretation:**
+
+- **GPI = 1**: Gender parity (equal access)
+- **GPI < 1**: Disparity in favor of males
+- **GPI > 1**: Disparity in favor of females

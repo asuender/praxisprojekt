@@ -1,7 +1,7 @@
 library(here)
 library(data.table)
 
-# load ILOSTAT data that gives values of "among all people outside labour force,
+# load ILOSTAT data that gives values of "among all people outside labor force,
 # what percentage says it is due to care responsibilities by gender and country.
 
 load_care_resp_share_data <- function() {
@@ -38,29 +38,22 @@ plot_care_share_facet <- function(data) {
   dt <- dt[country %in% names(country_map)]
   dt[, country := country_map[country]]
   dt[, country := factor(country, levels = unname(country_map))]
-  dt[, sex := factor(ifelse(sex == "Female", "Women", "Men"),
-                     levels = c("Women", "Men")
-  )]
+  dt[, sex := factor(sex, levels = c("Female", "Male"))]
   ggplot(dt, aes(x = year, y = value, color = sex, group = sex)) +
     geom_line(linewidth = 1) +
     geom_point(size = 1.5) +
-    scale_color_manual(values = c("Women" = "red", "Men" = "blue")) +
+    ylim(0, 100) +
+    scale_color_sex() +
     facet_wrap(~ country, ncol = 3) +
     labs(
-      title    = "Care Responsibilities as Reason for Labour Market Inactivity",
-      subtitle = "Share of people outside the labour force due to care responsibilities (%) | from 2005 onwards",
+      title    = "Share of people outside the labor force due to care responsibilities",
+      subtitle = "Selected countries | 2005 onward",
       x        = NULL,
       y        = "Share (%)",
-      color    = NULL,
+      color    = "Sex",
       caption  = "Source: ILOSTAT."
     ) +
-    theme_minimal(base_size = 11) +
     theme(
-      plot.title      = element_text(face = "bold", size = 13),
-      plot.subtitle   = element_text(color = "grey", size = 9),
-      plot.caption    = element_text(color = "grey", size = 7),
-      legend.position = "top",
-      strip.text      = element_text(face = "bold", size = 10),
       axis.text.x     = element_text(angle = 45, hjust = 1, size = 8),
       panel.spacing   = unit(1, "lines")
     )
@@ -104,40 +97,41 @@ plot_care_country_gap <- function(data, n_countries = 20) {
   selected <- c(head(dt_wide$country, n_countries / 2),
                 tail(dt_wide$country, n_countries / 2))
   dt_plot <- dt_wide[country %in% selected]
+  dt_plot[, highlight := fcase(
+    country %in% tail(dt_wide$country, n_countries / 2), "High care gap (top 10)",
+    country %in% head(dt_wide$country, n_countries / 2), "Low care gap (bottom 10)"
+  )]
 
   # country label with year appended
   dt_plot[, country_label := paste0(country, " (", year, ")")]
 
   ggplot(dt_plot, aes(x = gap,
                       y = reorder(country_label, gap),
-                      color = gap)) +
+                      color = highlight)) +
     geom_vline(xintercept = 0, color = "grey50", linetype = "dashed") +
-    geom_point(size = 3) +
+    geom_point(
+      aes(fill = highlight),
+      size = 3.2,
+      shape = 21,
+      stroke = 0.45,
+      color = unname(config.palette.presentation$ink)
+    ) +
     geom_segment(aes(x = 0, xend = gap,
                      y = reorder(country_label, gap),
                      yend = reorder(country_label, gap)),
                  linewidth = 0.5, alpha = 0.5) +
-    scale_color_gradient(low = "#f5a623", high = "#c0392b") +
+    scale_color_manual(values = config.palette.care_highlight, name = NULL) +
+    scale_fill_manual(values = config.palette.care_highlight, name = NULL) +
     scale_x_continuous(labels = function(x) paste0(x, "%"),
                        expand = expansion(mult = c(0.05, 0.08))) +
     labs(
-      title    = "Gender Gap in Care Driven Labour Inactivity",
-      subtitle = paste0("Gap = Female minus Male share outside labour force due to care (%) | ",
-                        "Top & Bottom 10 countries | Most recent paired year 2020–2023"),
-      x        = "Gender gap (percentage points)",
+      title    = "Gender gap in care-related labor inactivity",
+      subtitle = "Selected countries | Most recent paired year in 2020-2023",
+      x        = "Female minus male share (%)",
       y        = NULL,
-      caption  = paste0(
-        "Source: ILOSTAT. Countries with only one year of data excluded. ",
-        "Most recent paired year between 2020 and 2023 used per country. ",
-        "2024 data excluded due to incomplete provisional releases. ",
-        "Year shown in parentheses."
-      )
+      caption  = "Source: ILOSTAT."
     ) +
-    theme_minimal(base_size = 11) +
     theme(
-      plot.title         = element_text(face = "bold", size = 13),
-      plot.subtitle      = element_text(color = "grey50", size = 9),
-      plot.caption       = element_text(color = "grey50", size = 7),
       legend.position    = "none",
       axis.text.y        = element_text(size = 8),
       panel.grid.major.y = element_line(color = "grey92"),
@@ -194,18 +188,25 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
 
   sp_rho <- round(cor(merged$care_gap, merged$lfp_gap,
                       method = "spearman", use = "complete.obs"), 3)
-  annot  <- paste0("Spearman \u03C1 = ", sp_rho)
 
 
-  ggplot(merged, aes(x = lfp_gap, y = care_gap, color = highlight)) +
-    geom_point(aes(size  = ifelse(highlight == "Other", 2.0, 2.8),
-                   alpha = ifelse(highlight == "Other", 0.4, 0.9))) +
+  ggplot(merged, aes(x = lfp_gap, y = care_gap)) +
+    geom_point(
+      aes(
+        fill = highlight,
+        size = ifelse(highlight == "Other", 2.0, 2.8),
+        alpha = ifelse(highlight == "Other", 0.4, 0.9)
+      ),
+      shape = 21,
+      color = unname(config.palette.presentation$ink),
+      stroke = 0.45
+    ) +
     scale_size_identity() +
     scale_alpha_identity() +
     ggrepel::geom_text_repel(
       data          = merged[country %in% label_countries],
       aes(label     = country),
-      color         = "#c0392b",
+      color         = unname(config.palette.care_highlight["High care gap (top 10)"]),
       size          = 3.0,
       fontface      = "bold",
       box.padding   = 0.5,
@@ -214,38 +215,31 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
       segment.size  = 0.3,
       show.legend   = FALSE
     ) +
-    scale_color_manual(
-      values = c(
-        "High care gap (top 10)"   = "#c0392b",
-        "Low care gap (bottom 10)" = "#f5a623",
-        "Other"                    = "grey70"
-      ),
+    scale_fill_manual(
+      values = config.palette.care_highlight,
       name = NULL
     ) +
+    guides(fill = guide_legend(override.aes = list(
+      size = 4.5,
+      alpha = 1,
+      shape = 21,
+      stroke = 0.45,
+      color = unname(config.palette.presentation$ink)
+    ))) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
     geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
-    annotate(
-      "text",
-      x     = max(merged$lfp_gap, na.rm = TRUE),
-      y     = max(merged$care_gap, na.rm = TRUE),
-      label = annot,
-      hjust = 1, vjust = 1,
-      size  = 3.2,
-      color = "grey20"
-    ) +
     labs(
-      title    = "Care Related Labour Inactivity Gap vs Labour Force Participation Gap with 85 countries",
-      subtitle = "One point = one country | Most recent paired year 2020\u20132023 | Highlighted = top & bottom 10 countries from previous slide",
-      x        = "Labour Force Participation gap (Male minus Female)",
-      y        = "Care Related Labour inactivity gap (Female minus Male)",
-      caption  = "Source: ILOSTAT. Data: Most recent paired year between 2020 and 2023 per country with more than 1 data point. Gap taken respectively as percentage points."
+      title    = "Care-related labor inactivity gap vs labor force participation gap",
+      subtitle = paste0(
+        "Most recent paired year, 2020-2023 | One point = one country | Spearman rho = ",
+        sp_rho
+      ),
+      x        = "Labor force participation gap\n(Male minus Female)",
+      y        = "Care-related labor inactivity gap\n(Female minus Male)",
+      caption  = "Source: ILOSTAT."
     ) +
-    theme_minimal(base_size = 11) +
     theme(
-      plot.title       = element_text(face = "bold", size = 13),
-      plot.subtitle    = element_text(color = "grey50", size = 9),
-      plot.caption     = element_text(color = "grey50", size = 7),
-      legend.position  = "bottom",
+      legend.position = "top",
       panel.grid.minor = element_blank()
     )
 }
