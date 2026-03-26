@@ -228,10 +228,7 @@ plot_completion_global <- function(completion_global_latest) {
       x = "Education level",
       y = "Average completion rate (%)",
       fill = "Sex",
-      caption = paste(
-        "Source: UNESCO Institute of Statistics.\n",
-        "Includes countries with complete observations across all three education levels and both sexes in 2021."
-      )
+      caption = "Source: UNESCO Institute of Statistics."
     )
 }
 
@@ -249,9 +246,6 @@ plot_completion_countries_time <- function(completion_countries_time) {
       x = "Year",
       y = "Average completion rate (%)",
       color = "Sex",
-      caption = paste(
-        "Source: UNESCO Institute of Statistics.\n",
-        "Values are country-year means across primary, lower secondary, and upper secondary completion rates."
-      )
+      caption = "Source: UNESCO Institute of Statistics."
     )
 }

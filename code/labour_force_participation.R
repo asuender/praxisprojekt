@@ -173,7 +173,7 @@ plot_lfpr_selected_countries <- function(lf_total_2024_comparison) {
       ),
       inherit.aes = FALSE,
       fontface = "bold",
-      size = 3.2,
+      size = 4.5,
       color = "grey20"
     ) +
     labs(
@@ -182,10 +182,7 @@ plot_lfpr_selected_countries <- function(lf_total_2024_comparison) {
       x = "Country",
       y = "Labor force participation rate (%)",
       fill = "Sex",
-      caption = paste0(
-        "Source: ILOSTAT.\n",
-        "Labels above the male bars show the male-to-female participation rate ratio."
-      )
+      caption = "Source: ILOSTAT."
     ) +
     scale_fill_sex() +
     scale_y_continuous(

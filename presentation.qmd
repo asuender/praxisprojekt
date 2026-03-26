@@ -157,12 +157,6 @@ plot_lfpr_by_education(lf_2024_educ_groupped, "Germany")
 plot_lfpr_by_education(lf_2024_educ_groupped, "Iran")
 ```
 
----
-
-```{r - Labor force participation in Iran, tertiary education}
-plot_lfpr_tertiary(lf_2024_tert_educ, "Iran")
-```
-
 # Income
 
 ---
@@ -196,4 +190,16 @@ However, the following may be noted:
 - Our country-based data is predominantly led by economically developed countries
 - Our analysis misses further topics covered by the GII
 
-# Thank you very much!
+# Appendix
+
+---
+
+```{r - Labor force participation in Germany, tertiary education}
+plot_lfpr_tertiary(lf_2024_tert_educ, "Germany")
+```
+
+---
+
+```{r - Labor force participation in Iran, tertiary education}
+plot_lfpr_tertiary(lf_2024_tert_educ, "Iran")
+```

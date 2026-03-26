@@ -129,10 +129,7 @@ plot_care_country_gap <- function(data, n_countries = 20) {
       subtitle = "Selected countries | Most recent paired year in 2020-2023",
       x        = "Female minus male share (%)",
       y        = NULL,
-      caption  = paste0(
-        "Source: ILOSTAT.\nShown are the top and bottom 10 countries by gap. ",
-        "Countries with fewer than 2 years of data are excluded."
-      )
+      caption  = "Source: ILOSTAT."
     ) +
     theme(
       legend.position    = "none",
@@ -239,12 +236,7 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
       ),
       x        = "Labor force participation gap\n(Male minus Female)",
       y        = "Care-related labor inactivity gap\n(Female minus Male)",
-      caption  = paste(
-        "Source: ILOSTAT.\n",
-        "Countries with fewer than 2 years of care-responsibility data are excluded.\n",
-        "Highlighted points mark the top and bottom 10 care-gap countries from the previous slide.",
-        "Both gaps are expressed in percentage points."
-      )
+      caption  = "Source: ILOSTAT."
     ) +
     theme(
       legend.position = "top",

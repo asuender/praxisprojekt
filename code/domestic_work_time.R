@@ -18,8 +18,8 @@ plot_domestic_work_region <- function(data) {
   )]
   dt <- dt[!is.na(female) & !is.na(male)]
   dt_country <- dt[, .(
-    female = mean(female, na.rm = TRUE),
-    male   = mean(male,   na.rm = TRUE)
+    female = median(female, na.rm = TRUE),
+    male   = median(male,   na.rm = TRUE)
   ), by = .(country, region)]
   dt_region <- dt_country[, .(
     female_med  = median(female, na.rm = TRUE),
@@ -69,22 +69,18 @@ plot_domestic_work_region <- function(data) {
           label = paste0(ratio, "x")),
       inherit.aes = FALSE,
       fontface    = "bold",
-      size        = 3.2,
+      size        = 4.5,
       color       = "grey20"
     ) +
     scale_fill_sex() +
     scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
     labs(
       title    = "Time spent in unpaid domestic work",
-      subtitle = paste0(uniqueN(dt$country), " countries | ", "By region and sex | Median of country means | ", min(dt$year), "-", max(dt$year)),
+      subtitle = paste0(uniqueN(dt$country), " countries | ", "By region and sex | Median of country medians | ", min(dt$year), "-", max(dt$year)),
       x       = NULL,
       y       = "Time (% of day)",
       fill    = "Sex",
-      caption = paste0(
-        "Source: Our World in Data.\n",
-        "Country means are computed over all available years, then aggregated to regional medians.\n",
-        "Error bars show the IQR of country means; labels above the female bars show the female-to-male ratio of regional medians."
-      )
+      caption = "Source: Our World in Data."
     ) +
     theme(
       axis.text.x        = element_text(angle = 35, hjust = 1, face = "bold", size = 9),
