@@ -42,6 +42,8 @@ plot_wage_gap_distribution <- function(owid_data) {
     scale_fill_presentation_binary(
       negative_label = "Women earn more",
       positive_label = "Women earn less",
+      negative = config.palette.presentation$female,
+      positive = config.palette.presentation$male,
       name = NULL
     ) +
     geom_vline(xintercept = 0,       linetype = "solid",  color = "black",  linewidth = 0.7) +
@@ -56,7 +58,7 @@ plot_wage_gap_distribution <- function(owid_data) {
       "text", x = max(dt_country$gap, na.rm = TRUE) * 0.60, y = Inf,
       label    = paste0(pct_positive, "% of countries\nshow a positive gap"),
       hjust    = 0, vjust = 1.6,
-      size     = 3.4, color = unname(config.palette.sex["Female"]), fontface = "bold"
+      size     = 3.4, color = unname(config.palette.sex["Male"]), fontface = "bold"
     ) +
     scale_x_continuous(labels = function(x) paste0(x, "%")) +
     scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
@@ -158,6 +160,8 @@ plot_wage_gap_gii_correlation <- function(dt_gii, owid_data) {
     scale_fill_presentation_binary(
       negative_label = "Women earn more",
       positive_label = "Women earn less",
+      negative = config.palette.presentation$female,
+      positive = config.palette.presentation$male,
       name = NULL
     ) +
     guides(fill = guide_legend(override.aes = list(

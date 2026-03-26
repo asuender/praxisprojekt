@@ -1,5 +1,6 @@
 library(dplyr)
 library(stringr)
+library(tidyr)
 library(ggplot2)
 library(here)
 
@@ -147,7 +148,7 @@ plot_lfpr_selected_countries <- function(lf_total_2024_comparison) {
 
   ratio_data <- plot_data %>%
     select(country, sex, rate) %>%
-    tidyr::pivot_wider(names_from = sex, values_from = rate) %>%
+    pivot_wider(names_from = sex, values_from = rate) %>%
     mutate(
       ratio = round(Male / Female, 2),
       label_y = Male + 4
