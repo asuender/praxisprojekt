@@ -64,7 +64,7 @@ wage_gap <- load_gender_wage_gap_data()
 
     - Gender differences in **education**, **care work**, **labor force participation**, and **income**
     - Variation across countries and over time
-    - Correlation with other development-related indicators
+    - Correlation across examined metrics
    
 3. Summary
 4. Discussion
