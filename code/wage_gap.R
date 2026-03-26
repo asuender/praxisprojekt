@@ -113,7 +113,7 @@ plot_wage_gap_facet <- function(owid_data) {
       title    = "Gender wage gap over time",
       subtitle = "Selected countries | 2000-2025",
       x        = NULL,
-      y        = "Anual wage gap",
+      y        = "Anual wage gap (%)",
       caption  = paste(
         "Source: Our World in Data.\n",
         "Positive values indicate women earn less than men.\n",
@@ -126,10 +126,7 @@ plot_wage_gap_facet <- function(owid_data) {
     )
 }
 
-plot_wage_gap_gii_correlation <- function(owid_data) {
-
-  gii <- fread(here("data", "raw", "owid_gii.csv"))
-
+plot_wage_gap_gii_correlation <- function(dt_gii, owid_data) {
   dt_gap <- as.data.table(owid_data)[
     !is.na(gender_wage_gap_by_occupation__classif1_occupation__skill_level__total) &
       year >= 2020 & year <= 2025
@@ -138,14 +135,14 @@ plot_wage_gap_gii_correlation <- function(owid_data) {
   dt_gap <- dt_gap[, .SD[which.max(year)], by = country
   ][, .(country, gap = gender_wage_gap_by_occupation__classif1_occupation__skill_level__total)]
 
-  dt_gii <- as.data.table(gii)[
-    !is.na(gii) & year >= 2020 & year <= 2025
-  ][, .SD[which.max(year)], by = .(country = entity)
-  ][, .(country, gii)]
+  dt_gii <- dt_gii[
+    !is.na(value) & year >= 2020 & year <= 2025
+  ][, .SD[which.max(year)], by = country
+  ][, .(country, gii = value)]
 
   merged <- merge(dt_gap, dt_gii, by = "country")
 
-  sp_test <- cor.test(merged$gap, merged$gii, method = "spearman")
+  sp_test <- cor.test(merged$gap, merged$gii, method = "spearman", exact = FALSE)
   sp_rho  <- round(sp_test$estimate, 3)
 
   ggplot(merged, aes(x = gii, y = gap)) +
@@ -175,11 +172,11 @@ plot_wage_gap_gii_correlation <- function(owid_data) {
     labs(
       title    = "Gender wage gap vs gender inequality index",
       subtitle = paste0(
-        "Most recent year, 2020-2025 | One point = one country | Spearman rho = ",
+        "79 countries | Most recent year, 2020-2025 | Spearman rho = ",
         sp_rho
       ),
       x       = "Gender inequality index",
-      y       = "Gender wage gap (%)",
+      y       = "Wage gap (%)",
       caption = paste(
         "Source: Our World in Data.\n",
         "The wage gap is defined as (male - female) / male * 100.\n",

@@ -105,6 +105,32 @@ plot_completion_global(completion.global.latest)
 plot_completion_countries_time(completion.countries.time)
 ```
 
+# Care work
+
+---
+
+```{r}
+plot_domestic_work_region(owid_domestic_work_time)
+```
+
+---
+
+```{r}
+plot_care_share_facet(care_responsibilities_share)
+```
+
+---
+
+```{r}
+plot_care_country_gap(care_responsibilities_share)
+```
+
+---
+
+```{r}
+plot_care_lfp_correlation(care_responsibilities_share, lfp)
+```
+
 # Labor force participation
 
 ---
@@ -137,35 +163,8 @@ plot_lfpr_by_education(lf_2024_educ_groupped, "Iran")
 plot_lfpr_tertiary(lf_2024_tert_educ, "Iran")
 ```
 
-
-# Care work
-
----
-
-```{r}
-plot_domestic_work_region(owid_domestic_work_time)
-```
-
----
-
-```{r}
-plot_care_share_facet(care_responsibilities_share)
-```
-
----
-
-```{r}
-plot_care_country_gap(care_responsibilities_share)
-```
-
----
-
-```{r}
-plot_care_lfp_correlation(care_responsibilities_share, lfp)
-```
-
 # Income
- 
+
 ---
 
 ```{r}
@@ -181,7 +180,7 @@ plot_wage_gap_facet(wage_gap)
 ---
 
 ```{r}
-plot_wage_gap_gii_correlation(wage_gap)
+plot_wage_gap_gii_correlation(gii, wage_gap)
 ```
 
 # Conclusion
