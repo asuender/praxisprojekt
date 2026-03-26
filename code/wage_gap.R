@@ -1,88 +1,99 @@
 library(ggplot2)
 library(data.table)
 library(here)
-
+library(countrycode)
 
 load_gender_wage_gap_data <- function() {
   fread(here("data", "raw", "owid_gender_wage_gap.csv"))
 }
 
 
-prepare_wage_gap_distribution_data <- function(owid_data, min_years = 1) {
+prepare_wage_gap_regional_data <- function(owid_data, min_years = 1) {
   dt <- as.data.table(owid_data)[, .(
     country = entity,
+    country_code = code,
     year    = year,
     gap     = gender_wage_gap_by_occupation__classif1_occupation__skill_level__total
   )]
   dt <- dt[!is.na(gap) & year >= 2000 & year <= 2025]
 
-  dt_counts <- dt[, .(n_years = uniqueN(year)), by = country]
-  dt <- dt[country %in% dt_counts[n_years >= min_years, country]]
+  # Add region using countrycode
+  dt[, region := countrycode(country_code, origin = "iso3c", destination = "continent")]
+  dt <- dt[!is.na(region)]
 
-  dt[, .(
-    gap     = mean(gap, na.rm = TRUE),
-    n_years = uniqueN(year)
+  # Calculate per-country medians
+  dt_country <- dt[, .(
+    gap = median(gap, na.rm = TRUE),
+    region = region[1]
   ), by = country]
+
+  # Calculate regional statistics
+  dt_region <- dt_country[, .(
+    gap_med = median(gap, na.rm = TRUE),
+    gap_q1 = quantile(gap, 0.25, na.rm = TRUE),
+    gap_q3 = quantile(gap, 0.75, na.rm = TRUE),
+    n_countries = uniqueN(country)
+  ), by = region]
+
+  dt_region[, region_label := paste0(region, "\nn = ", n_countries)]
+  dt_region
 }
 
 
 plot_wage_gap_distribution <- function(owid_data) {
-  dt_country <- prepare_wage_gap_distribution_data(owid_data, min_years = 2)
+  dt_region <- prepare_wage_gap_regional_data(owid_data)
 
-  pct_positive <- round(100 * mean(dt_country$gap > 0), 1)
-  med_gap      <- round(median(dt_country$gap, na.rm = TRUE), 1)
-  n_countries  <- nrow(dt_country)
+  # Custom order: Asia, Africa, Oceania, Europe, North America, South America
+  custom_order <- c("Asia", "Africa", "Oceania", "Europe", "North America", "South America")
+  dt_region[, region_label := factor(
+    region_label,
+    levels = dt_region[match(custom_order, region), region_label]
+  )]
 
-  ggplot(dt_country, aes(x = gap)) +
-    geom_histogram(
-      aes(fill = after_stat(x > 0)),
-      binwidth  = 3,
-      color     = "white",
-      linewidth = 0.3
+  n_countries <- sum(dt_region$n_countries)
+
+  # Add color column based on sign
+  dt_region[, bar_color := ifelse(gap_med >= 0,
+                                   config.palette.presentation$male,
+                                   config.palette.presentation$female)]
+
+  ggplot(dt_region, aes(x = region_label, y = gap_med)) +
+    geom_col(
+      aes(fill = bar_color),
+      width = 0.6,
+      color = unname(config.palette.presentation$ink),
+      linewidth = 0.5
     ) +
-    scale_fill_manual(
-      values = c("FALSE" = "blue", "TRUE" = "red"),
-      labels = c("FALSE" = "Women earn more", "TRUE" = "Women earn less"),
-      name   = NULL
+    geom_errorbar(
+      aes(ymin = gap_q1, ymax = gap_q3),
+      width = 0.25,
+      linewidth = 0.5,
+      color = "black"
     ) +
-    geom_vline(xintercept = 0,       linetype = "solid",  color = "black",  linewidth = 0.7) +
-    geom_vline(xintercept = med_gap, linetype = "dashed", color = "grey20", linewidth = 0.6) +
-    annotate(
-      "text", x = med_gap + 0.8, y = Inf,
-      label    = paste0("Median: ", med_gap, "%"),
-      hjust    = 0, vjust = 1.6,
-      size     = 3.2, color = "grey20", fontface = "bold"
+    geom_hline(yintercept = 0, linetype = "dashed", color = "grey50", linewidth = 0.4) +
+    geom_text(
+      aes(label = paste0(round(gap_med, 1), "%"), y = gap_q3),
+      vjust = -1.5,
+      size = 4.5,
+      fontface = "bold",
+      color = "grey20"
     ) +
-    annotate(
-      "text", x = max(dt_country$gap, na.rm = TRUE) * 0.60, y = Inf,
-      label    = paste0(pct_positive, "% of countries\nshow a positive gap"),
-      hjust    = 0, vjust = 1.6,
-      size     = 3.4, color = "red", fontface = "bold"
+    scale_fill_identity() +
+    scale_y_continuous(
+      labels = function(x) paste0(x, "%"),
+      expand = expansion(mult = c(0.05, 0.15))
     ) +
-    scale_x_continuous(labels = function(x) paste0(x, "%")) +
-    scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
     labs(
-      title    = "Gender Wage Gap Distribution Across Countries",
-      subtitle = paste0(
-        n_countries, " countries | country means over available years | 2000-2025 | at least 2 data points"
-      ),
-      x       = "Gender Wage Gap (male - female avg. wage, % of male wage)",
-      y       = "Number of Countries",
-      caption = paste0(
-        "Source: ILO via Our World in Data.  ",
-        "Country means computed over all available years within 2000-2025 after excluding countries with only one observation.\n",
-        "Gap defined as (male - female) / male x 100 at the total occupation level.  ",
-        "Each bar represents a 3 percentage point interval (binwidth = 3); "
-      )
+      title    = "Gender wage gap by region",
+      subtitle = paste0(n_countries, " countries | By region | Median of country medians | 2000-2025"),
+      x        = NULL,
+      y        = "Wage gap (%)",
+      caption  = "Source: Our World in Data.",
     ) +
-    theme_minimal(base_size = 11) +
     theme(
-      plot.title         = element_text(face = "bold", size = 13),
-      plot.subtitle      = element_text(color = "grey40", size = 9),
-      plot.caption       = element_text(color = "grey50", size = 7),
-      legend.position    = "top",
+      axis.text.x        = element_text(angle = 35, hjust = 1, face = "bold", size = 9),
       panel.grid.major.x = element_blank(),
-      panel.grid.minor   = element_blank()
+      legend.position    = "none"
     )
 }
 
@@ -111,38 +122,26 @@ plot_wage_gap_facet <- function(owid_data) {
   dt[, country := factor(country, levels = unname(country_map))]
 
   ggplot(dt, aes(x = year, y = gap)) +
-    geom_line(color = "red", linewidth = 1) +
-    geom_point(color = "red", size = 1.5) +
+    geom_line(color = unname(config.palette.sex["Female"]), linewidth = 1) +
+    geom_point(color = unname(config.palette.sex["Female"]), size = 1.5) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey50", linewidth = 0.5) +
     facet_wrap(~ country, ncol = 3) +
     scale_x_continuous(breaks = seq(2000, 2024, by = 6)) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     labs(
-      title    = "Gender Wage Gap Over Time Across Selected Countries",
-      subtitle = "Annual gap (male \u2212 female avg. wage, % of male wage) | 2000\u20132025 ",
+      title    = "Gender wage gap over time",
+      subtitle = "Selected countries | 2000-2025",
       x        = NULL,
-      y        = "Gender Wage Gap (%)",
-      caption  = paste0(
-        "Source: ILO via Our World in Data.  ",
-        "Positive values indicate women earn less than men.  ",
-        "Gap defined as (male \u2212 female) / male \u00d7 100 at total occupation level."
-      )
+      y        = "Anual wage gap (%)",
+      caption  = "Source: Our World in Data."
     ) +
-    theme_minimal(base_size = 11) +
     theme(
-      plot.title      = element_text(face = "bold", size = 13),
-      plot.subtitle   = element_text(color = "grey40", size = 9),
-      plot.caption    = element_text(color = "grey50", size = 7),
-      strip.text      = element_text(face = "bold", size = 10),
       axis.text.x     = element_text(angle = 45, hjust = 1, size = 8),
       panel.spacing   = grid::unit(1, "lines")
     )
 }
 
-plot_wage_gap_gii_correlation <- function(owid_data) {
-
-  gii <- fread(here("data", "raw", "owid_gii.csv"))
-
+plot_wage_gap_gii_correlation <- function(dt_gii, owid_data) {
   dt_gap <- as.data.table(owid_data)[
     !is.na(gender_wage_gap_by_occupation__classif1_occupation__skill_level__total) &
       year >= 2020 & year <= 2025
@@ -151,54 +150,53 @@ plot_wage_gap_gii_correlation <- function(owid_data) {
   dt_gap <- dt_gap[, .SD[which.max(year)], by = country
   ][, .(country, gap = gender_wage_gap_by_occupation__classif1_occupation__skill_level__total)]
 
-  dt_gii <- as.data.table(gii)[
-    !is.na(gii) & year >= 2020 & year <= 2025
-  ][, .SD[which.max(year)], by = .(country = entity)
-  ][, .(country, gii)]
+  dt_gii <- dt_gii[
+    !is.na(value) & year >= 2020 & year <= 2025
+  ][, .SD[which.max(year)], by = country
+  ][, .(country, gii = value)]
 
   merged <- merge(dt_gap, dt_gii, by = "country")
 
-  sp_test <- cor.test(merged$gap, merged$gii, method = "spearman")
+  sp_test <- cor.test(merged$gap, merged$gii, method = "spearman", exact = FALSE)
   sp_rho  <- round(sp_test$estimate, 3)
-
-  cat("Spearman rho:", sp_rho, "\n")
-  cat("N countries: ", nrow(merged), "\n")
 
   ggplot(merged, aes(x = gii, y = gap)) +
     geom_point(
-      aes(color = gap > 0),
+      aes(fill = gap > 0),
       size  = 2.5,
-      alpha = 0.75
+      alpha = 0.75,
+      shape = 21,
+      color = unname(config.palette.presentation$ink),
+      stroke = 0.45
     ) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey50", linewidth = 0.4) +
-    scale_color_manual(
-      values = c("FALSE" = "steelblue", "TRUE" = "#C0392B"),
-      labels = c("FALSE" = "Women earn more", "TRUE" = "Women earn less"),
-      name   = NULL
+    scale_fill_presentation_binary(
+      negative_label = "Women earn more",
+      positive_label = "Women earn less",
+      negative = config.palette.presentation$female,
+      positive = config.palette.presentation$male,
+      name = NULL
     ) +
+    guides(fill = guide_legend(override.aes = list(
+      size = 4.5,
+      alpha = 1,
+      shape = 21,
+      stroke = 0.45,
+      color = unname(config.palette.presentation$ink)
+    ))) +
     scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     labs(
-      title    = "Gender Wage Gap vs. Gender Inequality Index",
+      title    = "Gender wage gap vs gender inequality index",
       subtitle = paste0(
-        "One point = one country | Most recent year 2020\u20132025 | ",
-        "n = ", nrow(merged), " | ",
-        "Spearman \u03C1 = ", sp_rho
+        "79 countries | Most recent year, 2020-2025 | Spearman rho = ",
+        sp_rho
       ),
-      x       = "Gender Inequality Index (GII)  |  0 = fully equal, 1 = fully unequal",
-      y       = "Gender Wage Gap (%)",
-      caption = paste0(
-        "Source: ILO & UNDP via Our World in Data.  ",
-        "Wage gap = (male \u2212 female) / male \u00d7 100.  ",
-        "GII captures reproductive health, empowerment and labour market dimensions.\n",
-        "Most recent available year per country within 2020\u20132025.  "
-      )
+      x       = "Gender inequality index",
+      y       = "Wage gap (%)",
+      caption = "Source: Our World in Data."
     ) +
-    theme_minimal(base_size = 11) +
     theme(
-      plot.title       = element_text(face = "bold", size = 13),
-      plot.subtitle    = element_text(color = "grey40", size = 9),
-      plot.caption     = element_text(color = "grey50", size = 7),
       legend.position  = "top",
       panel.grid.minor = element_blank()
     )
