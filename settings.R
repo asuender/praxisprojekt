@@ -121,9 +121,9 @@ config.dataset.urls <- list(
 
 config.palette.presentation <- list(
   female = "#f46f67",
-  male = "#1db7be",
-  neutral = "#f3ede4",
-  grid = "#e3ddd4",
+  male = "#17a0a6",
+  neutral = "#e8e0d5",
+  grid = "#b8b8b8",
   ink = "#3f3f3f",
   na = "#d8d8d8"
 )
@@ -144,8 +144,8 @@ config.labels.sex <- c(
 
 config.palette.care_highlight <- c(
   "High care gap (top 10)" = "#6B5B95",
-  "Low care gap (bottom 10)" = "#D4AC0D",
-  "Other" = "grey70"
+  "Low care gap (bottom 10)" = "#B8930A",
+  "Other" = "#666666"
 )
 
 scale_fill_sex <- function(name = "Sex", ...) {
@@ -247,7 +247,7 @@ theme_set(
     theme(
       plot.title = element_text(hjust = 0.5, face = "bold", color = config.palette.presentation$ink),
       plot.subtitle = element_text(hjust = 0.5),
-      plot.caption = element_text(size = 9, color = "grey45", hjust = 1, margin = margin(t = 10)),
+      plot.caption = element_text(size = 9, color = "grey30", hjust = 1, margin = margin(t = 10)),
       plot.caption.position = "plot",
       axis.title.x = element_text(margin = margin(t = 10)),
       axis.title.y = element_text(margin = margin(r = 10)),
