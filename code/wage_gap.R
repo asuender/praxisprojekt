@@ -43,8 +43,8 @@ prepare_wage_gap_regional_data <- function(owid_data, min_years = 1) {
 plot_wage_gap_distribution <- function(owid_data) {
   dt_region <- prepare_wage_gap_regional_data(owid_data)
 
-  # Custom order: Asia, Africa, Oceania, Europe, North America, South America
-  custom_order <- c("Asia", "Africa", "Oceania", "Europe", "North America", "South America")
+  # Custom order: Asia, Africa, Oceania, Europe, Americas
+  custom_order <- c("Asia", "Africa", "Oceania", "Europe", "Americas")
   dt_region[, region_label := factor(
     region_label,
     levels = dt_region[match(custom_order, region), region_label]
