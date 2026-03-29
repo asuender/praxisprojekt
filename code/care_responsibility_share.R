@@ -229,12 +229,12 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
     geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
     labs(
-      title    = "Care-related labor inactivity gap vs labor force participation gap",
+      title    = "Care-related labor inactivity gap vs labor force participation rate gap",
       subtitle = paste0(
         "Most recent paired year, 2020-2023 | One point = one country | Spearman rho = ",
         sp_rho
       ),
-      x        = "Labor force participation gap\n(Male minus Female)",
+      x        = "Labor force participation rate gap\n(Male minus Female)",
       y        = "Care-related labor inactivity gap\n(Female minus Male)",
       caption  = "Source: ILOSTAT."
     ) +
