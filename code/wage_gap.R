@@ -91,14 +91,13 @@ plot_wage_gap_distribution <- function(owid_data) {
       caption  = "Source: Our World in Data.",
     ) +
     theme(
-      axis.text.x        = element_text(angle = 35, hjust = 1, face = "bold", size = 9),
+      axis.text.x        = element_text(angle = 35, hjust = 1, face = "bold"),
       panel.grid.major.x = element_blank(),
       legend.position    = "none"
     )
 }
 
 plot_wage_gap_facet <- function(owid_data) {
-
   dt <- as.data.table(owid_data)[, .(
     country = entity,
     year    = year,
@@ -122,8 +121,8 @@ plot_wage_gap_facet <- function(owid_data) {
   dt[, country := factor(country, levels = unname(country_map))]
 
   ggplot(dt, aes(x = year, y = gap)) +
-    geom_line(color = unname(config.palette.sex["Female"]), linewidth = 1) +
-    geom_point(color = unname(config.palette.sex["Female"]), size = 1.5) +
+    geom_line(color = config.palette.presentation$economic) +
+    geom_point(size = 1.5, color = config.palette.presentation$economic) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey50", linewidth = 0.5) +
     facet_wrap(~ country, ncol = 3) +
     scale_x_continuous(breaks = seq(2000, 2024, by = 6)) +
@@ -136,7 +135,7 @@ plot_wage_gap_facet <- function(owid_data) {
       caption  = "Source: Our World in Data."
     ) +
     theme(
-      axis.text.x     = element_text(angle = 45, hjust = 1, size = 8),
+      axis.text.x     = element_text(angle = 45, hjust = 1),
       panel.spacing   = grid::unit(1, "lines")
     )
 }

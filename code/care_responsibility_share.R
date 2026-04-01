@@ -40,7 +40,7 @@ plot_care_share_facet <- function(data) {
   dt[, country := factor(country, levels = unname(country_map))]
   dt[, sex := factor(sex, levels = c("Female", "Male"))]
   ggplot(dt, aes(x = year, y = value, color = sex, group = sex)) +
-    geom_line(linewidth = 1) +
+    geom_line() +
     geom_point(size = 1.5) +
     ylim(0, 100) +
     scale_color_sex() +
@@ -54,7 +54,7 @@ plot_care_share_facet <- function(data) {
       caption  = "Source: ILOSTAT."
     ) +
     theme(
-      axis.text.x     = element_text(angle = 45, hjust = 1, size = 8),
+      axis.text.x     = element_text(angle = 45, hjust = 1),
       panel.spacing   = unit(1, "lines")
     )
 }
@@ -133,7 +133,7 @@ plot_care_country_gap <- function(data, n_countries = 20) {
     ) +
     theme(
       legend.position    = "none",
-      axis.text.y        = element_text(size = 8),
+      axis.text.y        = element_text(size = 12),
       panel.grid.major.y = element_line(color = "grey92"),
       panel.grid.major.x = element_line(color = "grey92"),
       panel.grid.minor   = element_blank()
@@ -189,7 +189,6 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
   sp_rho <- round(cor(merged$care_gap, merged$lfp_gap,
                       method = "spearman", use = "complete.obs"), 3)
 
-
   ggplot(merged, aes(x = lfp_gap, y = care_gap)) +
     geom_point(
       aes(
@@ -207,7 +206,7 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
       data          = merged[country %in% label_countries],
       aes(label     = country),
       color         = unname(config.palette.care_highlight["High care gap (top 10)"]),
-      size          = 3.0,
+      size          = 4.5,
       fontface      = "bold",
       box.padding   = 0.5,
       point.padding = 0.3,

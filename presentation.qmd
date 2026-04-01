@@ -12,11 +12,17 @@ format:
     fontsize: 32px
     theme: default
     slide-number: true
+    fig-height: 7
     logo: assets/logo.svg
     css: presentation.css
 ---
 
 ```{r setup, include=FALSE}
+# for some reason, adding the `fig-align: center` option to the YAML header above
+# does not seem to really center the plots
+# I couldn't get it to work otherwise (even CSS fails at this)
+knitr::opts_chunk$set(fig.align = "center")
+
 # Put any `library()` calls (or similar) here
 # We can't put those into the setup block below, as the functions loaded by them
 # are not restored correctly when cached
@@ -89,7 +95,7 @@ Our analysis is based on data sets gathered from the following sources:
 
 ---
 
-```{r gpi-all-combined, fig.width=12, fig.height=7}
+```{r gpi-all-combined}
 plot_gpi_combined(gpi, world)
 ```
 

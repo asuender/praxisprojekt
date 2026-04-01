@@ -154,7 +154,7 @@ plot_gii_map <- function(gii_world) {
       subtitle = "Global coverage | 2023",
       caption = "Source: UNDP via Our World in Data.\nHigher values indicate greater inequality towards women."
     ) +
-    theme(axis.text = element_blank(), axis.ticks = element_blank())
+    theme(legend.text = element_text(size = 12), axis.text = element_blank(), axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())
 }
 
 plot_gpi_map <- function(gpi, world, level) {
@@ -178,8 +178,10 @@ plot_gpi_map <- function(gpi, world, level) {
     ) +
     theme(
       legend.title = element_text(vjust = 0.75),
-      axis.text = element_blank(),
-      axis.ticks = element_blank()
+      legend.text = element_text(size = 12),
+      axis.ticks = element_blank(),
+      axis.text.x = element_blank(),
+      axis.text.y = element_blank()
     )
 }
 

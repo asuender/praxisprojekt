@@ -125,7 +125,8 @@ config.palette.presentation <- list(
   neutral = "#e8e0d5",
   grid = "#b8b8b8",
   ink = "#3f3f3f",
-  na = "#d8d8d8"
+  na = "#d8d8d8",
+  economic = "#2E7D32"
 )
 
 config.palette.sex <- c(
@@ -247,7 +248,7 @@ theme_set(
     theme(
       plot.title = element_text(hjust = 0.5, face = "bold", color = config.palette.presentation$ink),
       plot.subtitle = element_text(hjust = 0.5),
-      plot.caption = element_text(size = 9, color = "grey30", hjust = 1, margin = margin(t = 10)),
+      plot.caption = element_text(size = 11, color = "grey30", hjust = 1, margin = margin(t = 10)),
       plot.caption.position = "plot",
       axis.title.x = element_text(margin = margin(t = 10)),
       axis.title.y = element_text(margin = margin(r = 10)),
@@ -255,8 +256,14 @@ theme_set(
       panel.grid.major = element_line(color = config.palette.presentation$grid, linewidth = 0.3),
       panel.border = element_rect(color = config.palette.presentation$ink, fill = NA, linewidth = 0.8),
       strip.background = element_blank(),
-      strip.text = element_text(color = config.palette.presentation$ink, face = "bold"),
+      strip.text = element_text(color = config.palette.presentation$ink, face = "bold", size = 12),
       legend.background = element_rect(fill = "white", color = NA),
-      legend.key = element_rect(fill = "white", color = NA)
+      legend.key = element_rect(fill = "white", color = NA),
+      legend.text = element_text(size = 14),
+      axis.text.x = element_text(size = 12),
+      axis.text.y = element_text(size = 12)
     )
 )
+
+# Set default geom aesthetic values
+update_geom_defaults("line", list(linewidth = 1))

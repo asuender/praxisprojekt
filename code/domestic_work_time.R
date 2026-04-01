@@ -83,7 +83,7 @@ plot_domestic_work_region <- function(data) {
       caption = "Source: Our World in Data."
     ) +
     theme(
-      axis.text.x        = element_text(angle = 35, hjust = 1, face = "bold", size = 9),
+      axis.text.x        = element_text(angle = 35, hjust = 1, face = "bold"),
       panel.grid.major.x = element_blank()
     )
 }
