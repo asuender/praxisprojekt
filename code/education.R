@@ -122,14 +122,15 @@ prepare_completion_global_latest <- function(completion, year = 2021) {
   ]$country |> unique()
 
   completion[year == year & country %in% balanced_countries,
-    .(value = mean(value)), by = .(educationLevel, sex)
+    .(value = mean(value)),
+    by = .(educationLevel, sex)
   ]
 }
 
 prepare_completion_countries_time <- function(
-    completion,
-    countries,
-    year_range = c(2005, 2020)
+  completion,
+  countries,
+  year_range = c(2005, 2020)
 ) {
   completion_countries_time <- completion[
     between(year, year_range[1], year_range[2]) & country %in% countries,
@@ -196,7 +197,7 @@ plot_gpi_subplot <- function(gpi, world, level) {
 
 plot_gpi_combined <- function(gpi, world) {
   (plot_gpi_subplot(gpi, world, "Primary") +
-      plot_gpi_subplot(gpi, world, "Lower secondary")) /
+    plot_gpi_subplot(gpi, world, "Lower secondary")) /
     (plot_gpi_subplot(gpi, world, "Upper secondary") +
       plot_gpi_subplot(gpi, world, "Tertiary")) +
     plot_layout(guides = "collect") +

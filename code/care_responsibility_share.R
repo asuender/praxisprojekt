@@ -44,7 +44,7 @@ plot_care_share_facet <- function(data) {
     geom_point(size = 1.5) +
     ylim(0, 100) +
     scale_color_sex() +
-    facet_wrap(~ country, ncol = 3) +
+    facet_wrap(~country, ncol = 3) +
     labs(
       title    = "Share of people outside the labor force due to care responsibilities",
       subtitle = "Selected countries | 2005 onward",
@@ -70,8 +70,10 @@ plot_care_share_facet <- function(data) {
 plot_care_country_gap <- function(data, n_countries = 20) {
   dt <- as.data.table(data)[
     sex.label %in% c("Male", "Female") & !is.na(obs_value),
-    .(country = ref_area.label, year = time, sex = sex.label,
-      value = obs_value)
+    .(
+      country = ref_area.label, year = time, sex = sex.label,
+      value = obs_value
+    )
   ]
 
   # remove countries with only one year of data
@@ -80,7 +82,8 @@ plot_care_country_gap <- function(data, n_countries = 20) {
 
   # most recent year where both sexes observed in same year, capped at 2023
   dt_paired <- dt[year <= 2023, if (all(c("Male", "Female") %in% sex)) .SD,
-                  by = .(country, year)]
+    by = .(country, year)
+  ]
   dt_last_year <- dt_paired[, .(last_year = max(year)), by = country]
   dt_paired <- dt_paired[dt_last_year, on = "country"][year == last_year]
 
@@ -94,8 +97,10 @@ plot_care_country_gap <- function(data, n_countries = 20) {
 
   # top and bottom 10 by gap
   setorder(dt_wide, gap)
-  selected <- c(head(dt_wide$country, n_countries / 2),
-                tail(dt_wide$country, n_countries / 2))
+  selected <- c(
+    head(dt_wide$country, n_countries / 2),
+    tail(dt_wide$country, n_countries / 2)
+  )
   dt_plot <- dt_wide[country %in% selected]
   dt_plot[, highlight := fcase(
     country %in% tail(dt_wide$country, n_countries / 2), "High care gap (top 10)",
@@ -105,9 +110,11 @@ plot_care_country_gap <- function(data, n_countries = 20) {
   # country label with year appended
   dt_plot[, country_label := paste0(country, " (", year, ")")]
 
-  ggplot(dt_plot, aes(x = gap,
-                      y = reorder(country_label, gap),
-                      color = highlight)) +
+  ggplot(dt_plot, aes(
+    x = gap,
+    y = reorder(country_label, gap),
+    color = highlight
+  )) +
     geom_vline(xintercept = 0, color = "grey50", linetype = "dashed") +
     geom_point(
       aes(fill = highlight),
@@ -116,14 +123,20 @@ plot_care_country_gap <- function(data, n_countries = 20) {
       stroke = 0.45,
       color = unname(config.palette.presentation$ink)
     ) +
-    geom_segment(aes(x = 0, xend = gap,
-                     y = reorder(country_label, gap),
-                     yend = reorder(country_label, gap)),
-                 linewidth = 0.5, alpha = 0.5) +
+    geom_segment(
+      aes(
+        x = 0, xend = gap,
+        y = reorder(country_label, gap),
+        yend = reorder(country_label, gap)
+      ),
+      linewidth = 0.5, alpha = 0.5
+    ) +
     scale_color_manual(values = config.palette.care_highlight, name = NULL) +
     scale_fill_manual(values = config.palette.care_highlight, name = NULL) +
-    scale_x_continuous(labels = function(x) paste0(x, "%"),
-                       expand = expansion(mult = c(0.05, 0.08))) +
+    scale_x_continuous(
+      labels = function(x) paste0(x, "%"),
+      expand = expansion(mult = c(0.05, 0.08))
+    ) +
     labs(
       title    = "Gender gap in care-related labor inactivity",
       subtitle = "Selected countries | Most recent paired year in 2020-2023",
@@ -152,7 +165,8 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
   dt_counts <- dt[, .(n_years = uniqueN(year)), by = country]
   dt <- dt[country %in% dt_counts[n_years >= 2, country]]
   dt_paired <- dt[year <= 2023, if (all(c("Male", "Female") %in% sex)) .SD,
-                  by = .(country, year)]
+    by = .(country, year)
+  ]
   dt_last <- dt_paired[, .(last_year = max(year)), by = country]
   dt_paired <- dt_paired[dt_last, on = "country"][year == last_year]
   dt_paired <- dt_paired[year >= 2020]
@@ -161,7 +175,7 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
   dt_wide[, care_gap := Female - Male]
 
   setorder(dt_wide, care_gap)
-  low_gap_countries  <- head(dt_wide$country, n_countries / 2)
+  low_gap_countries <- head(dt_wide$country, n_countries / 2)
   high_gap_countries <- tail(dt_wide$country, n_countries / 2)
 
   dt_lfp <- as.data.table(lfp_data)[
@@ -173,8 +187,9 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
   dt_lfp_wide[, lfp_gap := Male - Female]
 
   merged <- merge(dt_wide[, .(country, year, care_gap)],
-                  dt_lfp_wide[, .(country, year, lfp_gap)],
-                  by = c("country", "year"))
+    dt_lfp_wide[, .(country, year, lfp_gap)],
+    by = c("country", "year")
+  )
 
   merged[, highlight := fcase(
     country %in% high_gap_countries, "High care gap (top 10)",
@@ -187,7 +202,8 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
   label_countries <- head(top10_merged$country, 2)
 
   sp_rho <- round(cor(merged$care_gap, merged$lfp_gap,
-                      method = "spearman", use = "complete.obs"), 3)
+    method = "spearman", use = "complete.obs"
+  ), 3)
 
   ggplot(merged, aes(x = lfp_gap, y = care_gap)) +
     geom_point(
@@ -204,7 +220,7 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
     scale_alpha_identity() +
     ggrepel::geom_text_repel(
       data          = merged[country %in% label_countries],
-      aes(label     = country),
+      aes(label = country),
       color         = unname(config.palette.care_highlight["High care gap (top 10)"]),
       size          = 4.5,
       fontface      = "bold",
@@ -228,14 +244,14 @@ plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
     geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
     labs(
-      title    = "Care-related labor inactivity gap vs labor force participation rate gap",
+      title = "Care-related labor inactivity gap vs labor force participation rate gap",
       subtitle = paste0(
         "Most recent paired year, 2020-2023 | One point = one country | Spearman rho = ",
         sp_rho
       ),
-      x        = "Labor force participation rate gap\n(Male minus Female)",
-      y        = "Care-related labor inactivity gap\n(Female minus Male)",
-      caption  = "Source: ILOSTAT."
+      x = "Labor force participation rate gap\n(Male minus Female)",
+      y = "Care-related labor inactivity gap\n(Female minus Male)",
+      caption = "Source: ILOSTAT."
     ) +
     theme(
       legend.position = "top",

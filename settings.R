@@ -158,11 +158,11 @@ scale_color_sex <- function(name = "Sex", ...) {
 }
 
 scale_fill_presentation_sequential <- function(
-    name = waiver(),
-    low = config.palette.presentation$neutral,
-    high = config.palette.presentation$female,
-    na.value = config.palette.presentation$na,
-    ...
+  name = waiver(),
+  low = config.palette.presentation$neutral,
+  high = config.palette.presentation$female,
+  na.value = config.palette.presentation$na,
+  ...
 ) {
   scale_fill_gradient(
     low = low,
@@ -174,13 +174,13 @@ scale_fill_presentation_sequential <- function(
 }
 
 scale_fill_presentation_diverging <- function(
-    name = waiver(),
-    low,
-    high,
-    mid = config.palette.presentation$neutral,
-    midpoint = 0,
-    na.value = config.palette.presentation$na,
-    ...
+  name = waiver(),
+  low,
+  high,
+  mid = config.palette.presentation$neutral,
+  midpoint = 0,
+  na.value = config.palette.presentation$na,
+  ...
 ) {
   scale_fill_gradient2(
     low = low,
@@ -194,12 +194,12 @@ scale_fill_presentation_diverging <- function(
 }
 
 scale_color_presentation_diverging <- function(
-    name = waiver(),
-    low,
-    high,
-    mid = config.palette.presentation$neutral,
-    midpoint = 0,
-    ...
+  name = waiver(),
+  low,
+  high,
+  mid = config.palette.presentation$neutral,
+  midpoint = 0,
+  ...
 ) {
   scale_color_gradient2(
     low = low,
@@ -212,12 +212,12 @@ scale_color_presentation_diverging <- function(
 }
 
 scale_fill_presentation_binary <- function(
-    name = waiver(),
-    negative_label,
-    positive_label,
-    negative = config.palette.presentation$male,
-    positive = config.palette.presentation$female,
-    ...
+  name = waiver(),
+  negative_label,
+  positive_label,
+  negative = config.palette.presentation$male,
+  positive = config.palette.presentation$female,
+  ...
 ) {
   scale_fill_manual(
     values = c("FALSE" = negative, "TRUE" = positive),
@@ -228,12 +228,12 @@ scale_fill_presentation_binary <- function(
 }
 
 scale_color_presentation_binary <- function(
-    name = waiver(),
-    negative_label,
-    positive_label,
-    negative = config.palette.presentation$male,
-    positive = config.palette.presentation$female,
-    ...
+  name = waiver(),
+  negative_label,
+  positive_label,
+  negative = config.palette.presentation$male,
+  positive = config.palette.presentation$female,
+  ...
 ) {
   scale_color_manual(
     values = c("FALSE" = negative, "TRUE" = positive),
