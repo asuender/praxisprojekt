@@ -4,10 +4,25 @@ library(data.table)
 library(gt)
 library(here)
 
+#' Load OWID unpaid domestic work time data
+#'
+#' Reads the raw Our World in Data file on unpaid domestic work time from
+#' \code{data/raw/}.
+#'
+#' @return A \code{data.table} with country-year observations and sex-specific
+#'   time-use variables.
 load_care_time_share_data <- function() {
   fread(here("data", "raw", "owid_domestic_work_time.csv"))
 }
 
+#' Plot unpaid domestic work time by region and sex
+#'
+#' Aggregates country-level median time shares into regional summaries and plots
+#' female and male medians with interquartile ranges.
+#'
+#' @param data A data frame or \code{data.table} returned by
+#'   \code{load_care_time_share_data()}.
+#' @return A \code{ggplot} object.
 plot_domestic_work_region <- function(data) {
   dt <- as.data.table(data)[, .(
     country = entity,

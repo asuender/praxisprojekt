@@ -1,6 +1,12 @@
 library(here)
 library(checkmate)
 
+#' Download configured raw datasets
+#'
+#' Iterates over \code{config.dataset.urls}, validates each entry, and
+#' downloads files into \code{data/raw/} when they are not present yet.
+#'
+#' @return Invisibly returns \code{NULL}.
 download_data <- function() {
   assert_list(config.dataset.urls, types = "list", min.len = 1)
 

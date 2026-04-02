@@ -1,18 +1,34 @@
 library(here)
 library(data.table)
 
-# load ILOSTAT data that gives values of "among all people outside labor force,
-# what percentage says it is due to care responsibilities by gender and country.
-
+#' Load ILOSTAT care responsibility inactivity data
+#'
+#' Reads the ILOSTAT dataset on the share of people outside the labor force due
+#' to care responsibilities.
+#'
+#' @return A \code{data.table} with country-year-sex observations from ILOSTAT.
 load_care_resp_share_data <- function() {
   fread(here("data", "raw", "care_responsbility_share.csv.gz"))
 }
 
+#' Load ILOSTAT labour force participation data
+#'
+#' Reads the raw ILOSTAT labour force participation dataset from
+#' \code{data/raw/}.
+#'
+#' @return A \code{data.table} with labour force participation observations.
 load_lfp_data <- function() {
   fread(here("data", "raw", "ilo_labour_force_participation.csv.gz"))
 }
 
-# plot and facet wrap.
+#' Plot care-related inactivity shares for selected countries
+#'
+#' Filters the care responsibility dataset to selected countries and plots female
+#' and male shares over time in faceted panels.
+#'
+#' @param data A data frame or \code{data.table} returned by
+#'   \code{load_care_resp_share_data()}.
+#' @return A \code{ggplot} object.
 plot_care_share_facet <- function(data) {
   dt <- as.data.table(data)
   dt <- dt[, .(
@@ -60,13 +76,16 @@ plot_care_share_facet <- function(data) {
 }
 
 
-#####
-
-# this is a lollipop plot that compares gaps of inequality for
-# the most recent years for the top and bottom 10
-# countries in values. It also removes countries that have less than 5
-# data points for valid analysis.
-
+#' Plot country-level care inactivity gaps
+#'
+#' Computes the latest paired female-male care responsibility gap per country,
+#' keeps the countries with the lowest and highest gaps, and displays them as a
+#' lollipop chart.
+#'
+#' @param data A data frame or \code{data.table} returned by
+#'   \code{load_care_resp_share_data()}.
+#' @param n_countries Number of countries to show in total.
+#' @return A \code{ggplot} object.
 plot_care_country_gap <- function(data, n_countries = 20) {
   dt <- as.data.table(data)[
     sex.label %in% c("Male", "Female") & !is.na(obs_value),
@@ -154,9 +173,19 @@ plot_care_country_gap <- function(data, n_countries = 20) {
 }
 
 
-### Correlation analysis for graphics no.2
-# Correlation analysis function for care share and LFP
-
+#' Plot the relationship between care gaps and labour force gaps
+#'
+#' Combines the latest paired care-related inactivity gaps with labour force
+#' participation gaps and highlights countries with especially low or high care
+#' gaps.
+#'
+#' @param data A data frame or \code{data.table} returned by
+#'   \code{load_care_resp_share_data()}.
+#' @param lfp_data A data frame or \code{data.table} returned by
+#'   \code{load_lfp_data()}.
+#' @param n_countries Number of highlighted countries used to define the high and
+#'   low gap groups.
+#' @return A \code{ggplot} object.
 plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
   dt <- as.data.table(data)[
     sex.label %in% c("Male", "Female") & !is.na(obs_value),

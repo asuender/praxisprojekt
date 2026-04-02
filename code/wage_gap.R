@@ -3,11 +3,27 @@ library(data.table)
 library(here)
 library(countrycode)
 
+#' Load OWID gender wage gap data
+#'
+#' Reads the raw Our World in Data wage gap dataset from \code{data/raw/}.
+#'
+#' @return A \code{data.table} with country-year wage gap observations.
 load_gender_wage_gap_data <- function() {
   fread(here("data", "raw", "owid_gender_wage_gap.csv"))
 }
 
 
+#' Prepare regional wage gap summaries
+#'
+#' Collapses the OWID wage gap series to country medians and then computes
+#' regional medians and interquartile ranges.
+#'
+#' @param owid_data A data frame or \code{data.table} containing the raw OWID
+#'   wage gap data.
+#' @param min_years Minimum number of yearly observations required per country.
+#'   Currently unused.
+#' @return A \code{data.table} with one row per region and summary statistics
+#'   for the wage gap.
 prepare_wage_gap_regional_data <- function(owid_data, min_years = 1) {
   dt <- as.data.table(owid_data)[, .(
     country = entity,
@@ -40,6 +56,14 @@ prepare_wage_gap_regional_data <- function(owid_data, min_years = 1) {
 }
 
 
+#' Plot the regional wage gap distribution
+#'
+#' Visualises median regional wage gaps together with interquartile ranges based
+#' on country-level medians.
+#'
+#' @param owid_data A data frame or \code{data.table} containing the raw OWID
+#'   wage gap data.
+#' @return A \code{ggplot} object.
 plot_wage_gap_distribution <- function(owid_data) {
   dt_region <- prepare_wage_gap_regional_data(owid_data)
 
@@ -98,6 +122,14 @@ plot_wage_gap_distribution <- function(owid_data) {
     )
 }
 
+#' Plot wage gap trends for selected countries
+#'
+#' Filters the OWID wage gap data to a fixed set of countries and shows their
+#' annual time series in small multiples.
+#'
+#' @param owid_data A data frame or \code{data.table} containing the raw OWID
+#'   wage gap data.
+#' @return A \code{ggplot} object.
 plot_wage_gap_facet <- function(owid_data) {
   dt <- as.data.table(owid_data)[, .(
     country = entity,
@@ -141,6 +173,16 @@ plot_wage_gap_facet <- function(owid_data) {
     )
 }
 
+#' Plot the relationship between wage gap and GII
+#'
+#' Joins the most recent wage gap observations with the most recent gender
+#' inequality index values and visualises their cross-country association.
+#'
+#' @param dt_gii A data frame or \code{data.table} with gender inequality index
+#'   values.
+#' @param owid_data A data frame or \code{data.table} containing the raw OWID
+#'   wage gap data.
+#' @return A \code{ggplot} object.
 plot_wage_gap_gii_correlation <- function(dt_gii, owid_data) {
   dt_gap <- as.data.table(owid_data)[
     !is.na(gender_wage_gap_by_occupation__classif1_occupation__skill_level__total) &
