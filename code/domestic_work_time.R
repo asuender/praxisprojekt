@@ -1,8 +1,8 @@
-library(ggplot2)
-library(readr)
-library(data.table)
-library(gt)
 library(here)
+library(checkmate)
+library(data.table)
+library(ggplot2)
+library(gt)
 
 #' Load OWID unpaid domestic work time data
 #'
@@ -20,11 +20,13 @@ load_care_time_share_data <- function() {
 #' Aggregates country-level median time shares into regional summaries and plots
 #' female and male medians with interquartile ranges.
 #'
-#' @param data A data frame or \code{data.table} returned by
+#' @param dt A \code{data.table} returned by
 #'   \code{load_care_time_share_data()}.
 #' @return A \code{ggplot} object.
-plot_domestic_work_region <- function(data) {
-  dt <- as.data.table(data)[, .(
+plot_domestic_work_region <- function(dt) {
+  assert_data_table(dt)
+
+  dt <- dt[, .(
     country = entity,
     year    = year,
     region  = owid_region,

@@ -1,4 +1,5 @@
 library(here)
+library(checkmate)
 library(data.table)
 
 #' Load ILOSTAT care responsibility inactivity data
@@ -26,11 +27,12 @@ load_lfp_data <- function() {
 #' Filters the care responsibility dataset to selected countries and plots female
 #' and male shares over time in faceted panels.
 #'
-#' @param data A data frame or \code{data.table} returned by
+#' @param data A \code{data.table} returned by
 #'   \code{load_care_resp_share_data()}.
 #' @return A \code{ggplot} object.
-plot_care_share_facet <- function(data) {
-  dt <- as.data.table(data)
+plot_care_share_facet <- function(dt) {
+  assert_data_table(dt)
+
   dt <- dt[, .(
     country = ref_area.label,
     year    = time,
@@ -82,12 +84,15 @@ plot_care_share_facet <- function(data) {
 #' keeps the countries with the lowest and highest gaps, and displays them as a
 #' lollipop chart.
 #'
-#' @param data A data frame or \code{data.table} returned by
+#' @param dt A \code{data.table} returned by
 #'   \code{load_care_resp_share_data()}.
 #' @param n_countries Number of countries to show in total.
 #' @return A \code{ggplot} object.
-plot_care_country_gap <- function(data, n_countries = 20) {
-  dt <- as.data.table(data)[
+plot_care_country_gap <- function(dt, n_countries = 20) {
+  assert_data_table(dt)
+  assert_count(n_countries)
+
+  dt <- dt[
     sex.label %in% c("Male", "Female") & !is.na(obs_value),
     .(
       country = ref_area.label, year = time, sex = sex.label,
@@ -179,15 +184,19 @@ plot_care_country_gap <- function(data, n_countries = 20) {
 #' participation gaps and highlights countries with especially low or high care
 #' gaps.
 #'
-#' @param data A data frame or \code{data.table} returned by
+#' @param dt A \code{data.table} returned by
 #'   \code{load_care_resp_share_data()}.
-#' @param lfp_data A data frame or \code{data.table} returned by
+#' @param lfp_data A \code{data.table} returned by
 #'   \code{load_lfp_data()}.
 #' @param n_countries Number of highlighted countries used to define the high and
 #'   low gap groups.
 #' @return A \code{ggplot} object.
-plot_care_lfp_correlation <- function(data, lfp_data, n_countries = 20) {
-  dt <- as.data.table(data)[
+plot_care_lfp_correlation <- function(dt, lfp_data, n_countries = 20) {
+  assert_data_table(dt)
+  assert_data_table(lfp_data)
+  assert_count(n_countries)
+
+  dt <- dt[
     sex.label %in% c("Male", "Female") & !is.na(obs_value),
     .(country = ref_area.label, year = time, sex = sex.label, value = obs_value)
   ]
