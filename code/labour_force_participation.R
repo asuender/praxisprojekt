@@ -324,7 +324,7 @@ plot_lfpr_by_education <- function(lf_2024_educ_grouped, country_name) {
     ) +
     labs(
       title = "Labor force participation rate",
-      subtitle = paste(country, "| By sex and education level | 2024"),
+      subtitle = paste(country_name, "| By sex and education level | 2024"),
       x = NULL,
       y = "Labor force participation rate (%)",
       fill = "Sex",
@@ -358,7 +358,7 @@ plot_lfpr_tertiary <- function(lf_2024_tert_educ, country_name) {
     ) +
     labs(
       title = "Labor force participation rate",
-      subtitle = paste(country, "| By sex and tertiary education | 2024"),
+      subtitle = paste(country_name, "| By sex and tertiary education | 2024"),
       x = NULL,
       y = "Labor force participation rate (%)",
       fill = "Sex",

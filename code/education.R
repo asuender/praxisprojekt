@@ -99,7 +99,7 @@ load_owid_gpi_data <- function() {
     col_female <- grep("fe", cols, ignore.case = TRUE, value = TRUE)
     col_male <- setdiff(cols[4:5], col_female)
 
-    setnames(dt, c(cols[1:2], col_female, col_male), c("country", "countryCode", "female", "male"))
+    setnames(dt, c(cols[1:2], col_female, col_male), c("country", "country_code", "female", "male"))
     dt[, level := level]
     dt
   }), fill = TRUE)
