@@ -9,7 +9,7 @@ library(data.table)
 #'
 #' @return A \code{data.table} with country-year-sex observations from ILOSTAT.
 load_care_resp_share_data <- function() {
-  fread(here("data", "raw", "care_responsbility_share.csv.gz"))
+  fread(here("data", "raw", "care_responsibility_share.csv.gz"))
 }
 
 #' Load ILOSTAT labour force participation data
@@ -100,26 +100,21 @@ plot_care_country_gap <- function(dt, n_countries = 20) {
     )
   ]
 
-  # remove countries with only one year of data
   dt_counts <- dt[, .(n_years = uniqueN(year)), by = country]
   dt <- dt[country %in% dt_counts[n_years >= 2, country]]
 
-  # most recent year where both sexes observed in same year, capped at 2023
   dt_paired <- dt[year <= 2023, if (all(c("Male", "Female") %in% sex)) .SD,
     by = .(country, year)
   ]
   dt_last_year <- dt_paired[, .(last_year = max(year)), by = country]
   dt_paired <- dt_paired[dt_last_year, on = "country"][year == last_year]
 
-  # keep only countries with most recent paired observation from 2020 or later
   dt_paired <- dt_paired[year >= 2020]
 
-  # wide format and gap
   dt_wide <- dcast(dt_paired, country + year ~ sex, value.var = "value")
   dt_wide <- dt_wide[!is.na(Female) & !is.na(Male)]
   dt_wide[, gap := Female - Male]
 
-  # top and bottom 10 by gap
   setorder(dt_wide, gap)
   selected <- c(
     head(dt_wide$country, n_countries / 2),
@@ -131,7 +126,6 @@ plot_care_country_gap <- function(dt, n_countries = 20) {
     country %in% head(dt_wide$country, n_countries / 2), "Low care gap (bottom 10)"
   )]
 
-  # country label with year appended
   dt_plot[, country_label := paste0(country, " (", year, ")")]
 
   ggplot(dt_plot, aes(
@@ -155,14 +149,14 @@ plot_care_country_gap <- function(dt, n_countries = 20) {
       ),
       linewidth = 0.5, alpha = 0.5
     ) +
-    scale_color_manual(values = config.palette.care_highlight, name = NULL) +
-    scale_fill_manual(values = config.palette.care_highlight, name = NULL) +
+    scale_color_manual(values = config.palette.care.highlight, name = NULL) +
+    scale_fill_manual(values = config.palette.care.highlight, name = NULL) +
     scale_x_continuous(
       labels = function(x) paste0(x, "%"),
       expand = expansion(mult = c(0.05, 0.08))
     ) +
     labs(
-      title    = "Gender gap in care-related labor inactivity",
+      title    = "Gender gap in care-related labour inactivity",
       subtitle = "Selected countries | Most recent paired year in 2020-2023",
       x        = "Female minus male share (%)",
       y        = NULL,
@@ -257,19 +251,19 @@ plot_care_lfp_correlation <- function(dt, lfp_data, n_countries = 20) {
     scale_size_identity() +
     scale_alpha_identity() +
     ggrepel::geom_text_repel(
-      data          = merged[country %in% label_countries],
+      data = merged[country %in% label_countries],
       aes(label = country),
-      color         = unname(config.palette.care_highlight["High care gap (top 10)"]),
-      size          = 4.5,
-      fontface      = "bold",
-      box.padding   = 0.5,
+      color = unname(config.palette.care.highlight["High care gap (top 10)"]),
+      size = 4.5,
+      fontface = "bold",
+      box.padding = 0.5,
       point.padding = 0.3,
       segment.color = "grey60",
-      segment.size  = 0.3,
-      show.legend   = FALSE
+      segment.size = 0.3,
+      show.legend = FALSE
     ) +
     scale_fill_manual(
-      values = config.palette.care_highlight,
+      values = config.palette.care.highlight,
       name = NULL
     ) +
     guides(fill = guide_legend(override.aes = list(
@@ -282,13 +276,13 @@ plot_care_lfp_correlation <- function(dt, lfp_data, n_countries = 20) {
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
     geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
     labs(
-      title = "Care-related labor inactivity gap vs labor force participation rate gap",
+      title = "Care-related labour inactivity gap vs labour force participation rate gap",
       subtitle = paste0(
         "Most recent paired year, 2020-2023 | One point = one country | Spearman rho = ",
         sp_rho
       ),
-      x = "Labor force participation rate gap\n(Male minus Female)",
-      y = "Care-related labor inactivity gap\n(Female minus Male)",
+      x = "Labour force participation rate gap\n(Male minus Female)",
+      y = "Care-related labour inactivity gap\n(Female minus Male)",
       caption = "Source: ILOSTAT."
     ) +
     theme(

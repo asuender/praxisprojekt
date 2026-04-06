@@ -11,7 +11,7 @@ library(countrycode)
 #'   (the GII score).
 load_owid_gii_data <- function() {
   dt <- fread(here("data", "raw", "owid_gender_inequality_index.csv"))
-  setnames(dt, c("entity", "code", "gii"), c("country", "countryCode", "value"))
+  setnames(dt, c("entity", "code", "gii"), c("country", "country_code", "value"))
   dt
 }
 
@@ -36,8 +36,8 @@ prepare_uis_data <- function(files) {
   dt[, sex := sub(".*_", "", indicator)]
   dt[, sex := factor(sex, levels = c("female", "male"), labels = c("Female", "Male"))]
 
-  setnames(dt, "geoUnit", "countryCode")
-  dt[, country := countrycode(countryCode, origin = "iso3c", destination = "country.name")]
+  setnames(dt, "geoUnit", "country_code")
+  dt[, country := countrycode(country_code, origin = "iso3c", destination = "country.name")]
 
   dt
 }
@@ -49,7 +49,7 @@ prepare_uis_data <- function(files) {
 #' level from the indicator name, and keeps only country-year-level
 #' combinations where both sexes are present.
 #'
-#' @return A \code{data.table} with columns: educationLevel, countryCode,
+#' @return A \code{data.table} with columns: education_level, country_code,
 #'   country, sex, year, value (completion rate in percent).
 load_uis_completion_rates <- function() {
   files <- list(
@@ -63,15 +63,15 @@ load_uis_completion_rates <- function() {
 
   dt <- prepare_uis_data(files)
 
-  dt[, educationLevel := sub("_[^_]+$", "", indicator)]
-  dt[, educationLevel := factor(fcase(
-    educationLevel == "primary",   "Primary",
-    educationLevel == "lower_sec", "Lower secondary",
-    educationLevel == "upper_sec", "Upper secondary"
+  dt[, education_level := sub("_[^_]+$", "", indicator)]
+  dt[, education_level := factor(fcase(
+    education_level == "primary",   "Primary",
+    education_level == "lower_sec", "Lower secondary",
+    education_level == "upper_sec", "Upper secondary"
   ), levels = c("Primary", "Lower secondary", "Upper secondary"))]
-  dt <- dt[, if (.N == 2) .SD, by = .(country, year, educationLevel)]
+  dt <- dt[, if (.N == 2) .SD, by = .(country, year, education_level)]
 
-  dt[, .(educationLevel, countryCode, country, sex, year, value)]
+  dt[, .(education_level, country_code, country, sex, year, value)]
 }
 
 #' Load OWID gross enrollment data and compute the Gender Parity Index
@@ -83,7 +83,7 @@ load_uis_completion_rates <- function() {
 #' during their own data cleaning process, which makes it necessary to handle
 #' that separately (hence we cannot use the \code{\link{prepare_uis_data}} function).
 #'
-#' @return A \code{data.table} with columns: educationLevel, countryCode,
+#' @return A \code{data.table} with columns: education_level, country_code,
 #'   country, year, value (GPI ratio).
 load_owid_gpi_data <- function() {
   files <- list(
@@ -105,11 +105,11 @@ load_owid_gpi_data <- function() {
   }), fill = TRUE)
 
   dt[, value := female / male]
-  dt[, educationLevel := factor(level, levels = c(
+  dt[, education_level := factor(level, levels = c(
     "Pre-primary", "Primary", "Lower secondary", "Upper secondary", "Tertiary"
   ))]
 
-  dt[, .(educationLevel, countryCode, country, year, value)]
+  dt[, .(education_level, country_code, country, year, value)]
 }
 
 #' Prepare world map data for the gender inequality index
@@ -127,7 +127,7 @@ prepare_gii_world_map_data <- function(gii, world, year = 2023) {
   assert_count(year)
 
   gii_latest <- gii[year == year]
-  merge(world, gii_latest, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
+  merge(world, gii_latest, by.x = "iso_a3", by.y = "country_code", all.x = TRUE)
 }
 
 #' Prepare global completion averages for the latest year
@@ -145,13 +145,13 @@ prepare_completion_global_latest <- function(completion, year = 2021) {
   assert_count(year)
 
   balanced_countries <- completion[year == year,
-    if (uniqueN(educationLevel) == 3 && uniqueN(sex) == 2) .SD,
+    if (uniqueN(education_level) == 3 && uniqueN(sex) == 2) .SD,
     by = country
   ]$country |> unique()
 
   completion[year == year & country %in% balanced_countries,
     .(value = mean(value)),
-    by = .(educationLevel, sex)
+    by = .(education_level, sex)
   ]
 }
 
@@ -223,9 +223,9 @@ plot_gpi_map <- function(gpi, world, level) {
   assert_class(world, "sf")
   assert_string(level)
 
-  gpi_filtered <- gpi[year %in% c(2020, 2021) & educationLevel == level]
-  gpi_filtered <- gpi_filtered[, .SD[which.max(year)], by = .(countryCode, country)]
-  world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
+  gpi_filtered <- gpi[year %in% c(2020, 2021) & education_level == level]
+  gpi_filtered <- gpi_filtered[, .SD[which.max(year)], by = .(country_code, country)]
+  world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "country_code", all.x = TRUE)
 
   ggplot(world_merged) +
     geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
@@ -313,7 +313,7 @@ plot_gpi_combined <- function(gpi, world) {
 plot_completion_global <- function(completion_global_latest) {
   assert_data_table(completion_global_latest)
 
-  ggplot(completion_global_latest, aes(x = educationLevel, y = value, fill = sex)) +
+  ggplot(completion_global_latest, aes(x = education_level, y = value, fill = sex)) +
     geom_bar(
       position = "dodge",
       stat = "identity",

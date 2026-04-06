@@ -33,11 +33,11 @@ prepare_lfpr_data <- function(data) {
     education = classif1.label,
     sex = sex.label,
     rate = obs_value
-  ) # Select and rename relevant variables
+  )
   data <- data %>% filter(
-    str_detect(education, "ISCED-11"), # Only one education scale
-    sex %in% c("Male", "Female"), # Only male/female rates
-    !is.na(rate), # No NA´s for labor force particpation rate
+    str_detect(education, "ISCED-11"),
+    sex %in% c("Male", "Female"),
+    !is.na(rate)
   )
   data
 }
@@ -59,13 +59,13 @@ prepare_lfpr_total_2024_comp <- function(data) {
     "United States of America",
     "Iran (Islamic Republic of)",
     "Australia"
-  ) # Select relevant countries
+  )
 
   data <- data %>%
     filter(
-      country %in% relevant_countries, # Only selected countries
-      str_detect(education, "Total"), # No education levels considered
-      year == 2024 # Only data for 2024
+      country %in% relevant_countries,
+      str_detect(education, "Total"),
+      year == 2024
     ) %>%
     mutate(country = recode(country,
       "Tanzania, United Republic of" = "Tanzania",
@@ -85,13 +85,13 @@ prepare_lfpr_total_2024_comp <- function(data) {
 #'
 #' @param data A data frame created by \code{prepare_lfpr_data()}.
 #' @return A data frame with Germany observations by year and sex.
-prepare_lfpr_GER_2010_to_2024 <- function(data) {
+prepare_lfpr_ger_2010_to_2024 <- function(data) {
   assert_data_frame(data)
 
   data <- data %>% filter(
-    country == "Germany", # Only Germany
-    str_detect(education, "Total"), # No education levels considered
-    year >= 2010 # From year 2010 onwards
+    country == "Germany",
+    str_detect(education, "Total"),
+    year >= 2010
   )
   data
 }
@@ -112,15 +112,15 @@ prepare_lfpr_2024_by_education <- function(data) {
     filter(
       year == 2024, # Only year 2024
       when_any(
-        country == "Germany", # Only Germany and Iran
+        country == "Germany",
         country == "Iran (Islamic Republic of)"
       ),
       !str_detect(
-        education, # Drop certain education levels
+        education,
         "Total|No schooling|Early childhood|Post-secondary|Not elsewhere"
       )
     ) %>%
-    mutate(country = recode(country, # Rename countries
+    mutate(country = recode(country,
       "Germany" = "Germany",
       "Iran (Islamic Republic of)" = "Iran"
     )) %>%
@@ -156,7 +156,7 @@ group_educ_and_recalculate_rates <- function(data) {
   assert_data_frame(data)
 
   data <- data %>%
-    mutate(education_new = case_when( # Regroup education levels
+    mutate(education_new = case_when(
       str_detect(as.character(education), "equivalent|Short-cycle") ~ "Tertiary education",
       TRUE ~ education
     )) %>%
@@ -173,7 +173,7 @@ group_educ_and_recalculate_rates <- function(data) {
     summarise(
       rate = mean(rate, na.rm = TRUE),
       .groups = "drop"
-    ) # Calculate aggregated lfpr for new education levels by country and sex
+    )
 
   data
 }
@@ -191,7 +191,7 @@ tertiary_educ_detailed <- function(data) {
 
   data <- data %>%
     filter(str_detect(
-      as.character(education), # Filter for tertiary education
+      as.character(education),
       "Short-cycle|equivalent"
     )) %>%
     mutate(education = factor(
@@ -277,13 +277,13 @@ plot_lfpr_selected_countries <- function(lf_total_2024_comparison) {
 #' Creates a time series plot of Germany's total labour force participation rate
 #' by sex from 2010 onward.
 #'
-#' @param lf_GER_2010_to_2024 A data frame created by
-#'   \code{prepare_lfpr_GER_2010_to_2024()}.
+#' @param lf_ger_2010_to_2024 A data frame created by
+#'   \code{prepare_lfpr_ger_2010_to_2024()}.
 #' @return A \code{ggplot} object.
-plot_lfpr_germany_time <- function(lf_GER_2010_to_2024) {
-  assert_data_frame(lf_GER_2010_to_2024)
+plot_lfpr_germany_time <- function(lf_ger_2010_to_2024) {
+  assert_data_frame(lf_ger_2010_to_2024)
 
-  lf_GER_2010_to_2024 %>%
+  lf_ger_2010_to_2024 %>%
     ggplot(aes(x = year, y = rate, color = sex)) +
     geom_line() +
     geom_point() +
@@ -309,12 +309,12 @@ plot_lfpr_germany_time <- function(lf_GER_2010_to_2024) {
 #'   \code{group_educ_and_recalculate_rates()}.
 #' @param country_name The country to plot.
 #' @return A \code{ggplot} object.
-plot_lfpr_by_education <- function(lf_2024_educ_grouped, country) {
+plot_lfpr_by_education <- function(lf_2024_educ_grouped, country_name) {
   assert_data_frame(lf_2024_educ_grouped)
-  assert_string(country)
+  assert_string(country_name)
 
   lf_2024_educ_grouped %>%
-    filter(country == country) %>%
+    filter(country == country_name) %>%
     ggplot(aes(x = country, y = rate, fill = sex)) +
     geom_bar(
       stat = "identity",
@@ -343,11 +343,12 @@ plot_lfpr_by_education <- function(lf_2024_educ_grouped, country) {
 #' @param lf_2024_tert_educ A data frame created by \code{tertiary_educ_detailed()}.
 #' @param country_name The country to plot.
 #' @return A \code{ggplot} object.
-plot_lfpr_tertiary <- function(lf_2024_tert_educ, country) {
+plot_lfpr_tertiary <- function(lf_2024_tert_educ, country_name) {
   assert_data_frame(lf_2024_tert_educ)
+  assert_string(country_name)
 
   lf_2024_tert_educ %>%
-    filter(country == country) %>%
+    filter(country == country_name) %>%
     ggplot(aes(x = country, y = rate, fill = sex)) +
     geom_bar(
       stat = "identity",
