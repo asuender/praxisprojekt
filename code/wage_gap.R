@@ -169,7 +169,7 @@ plot_wage_gap_facet <- function(owid_data) {
       title    = "Gender wage gap over time",
       subtitle = "Selected countries | 2000-2025",
       x        = NULL,
-      y        = "Anual wage gap (%)",
+      y        = "Annual wage gap (%)",
       caption  = "Source: Our World in Data."
     ) +
     theme(
