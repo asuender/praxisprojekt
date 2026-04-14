@@ -126,7 +126,8 @@ prepare_gii_world_map_data <- function(gii, world, year = 2023) {
   assert_class(world, "sf")
   assert_count(year)
 
-  gii_latest <- gii[year == year]
+  target_year <- year
+  gii_latest <- gii[year == target_year]
   merge(world, gii_latest, by.x = "iso_a3", by.y = "country_code", all.x = TRUE)
 }
 
@@ -144,12 +145,14 @@ prepare_completion_global_latest <- function(completion, year = 2021) {
   assert_data_table(completion)
   assert_count(year)
 
-  balanced_countries <- completion[year == year,
+  target_year <- year
+
+  balanced_countries <- completion[year == target_year,
     if (uniqueN(education_level) == 3 && uniqueN(sex) == 2) .SD,
     by = country
   ]$country |> unique()
 
-  completion[year == year & country %in% balanced_countries,
+  completion[year == target_year & country %in% balanced_countries,
     .(value = mean(value)),
     by = .(education_level, sex)
   ]
