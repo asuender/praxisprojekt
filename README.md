@@ -26,7 +26,9 @@ source("source_all.R")
 download_data()
 
 # 4. Render the presentation
+#    & executive summary
 quarto render presentation.qmd
+quarto render report.qmd
 ```
 
 ## Project Structure
