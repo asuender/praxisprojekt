@@ -1,80 +1,129 @@
+library(here)
+library(checkmate)
 library(dplyr)
 library(stringr)
 library(tidyr)
 library(ggplot2)
-library(here)
 
-#Load labor force participation raw data
+#' Load labour force participation and education data
+#'
+#' Reads the raw ILOSTAT dataset that combines labour force participation rates
+#' with education categories.
+#'
+#' @return A \code{data.frame} with raw ILOSTAT observations.
 load_labour_force_with_educ_data <- function() {
   read.csv(here("data", "raw", "ilo_labour_force_participation_and_education.csv.gz"))
 }
 
 
-#Function to prepare raw data
+#' Prepare labour force participation data
+#'
+#' Selects the relevant variables, restricts the dataset to ISCED-11 education
+#' categories and binary sex labels, and removes missing rates.
+#'
+#' @param data A data frame returned by \code{load_labour_force_with_educ_data()}.
+#' @return A data frame with harmonised labour force participation variables.
 prepare_lfpr_data <- function(data) {
+  assert_data_frame(data)
+
   data <- data %>% select(
     country = ref_area.label,
     data_source = source.label,
-    year    = time,
+    year = time,
     education = classif1.label,
-    sex     = sex.label,
-    rate   = obs_value
-    )  #Select and rename relevant variables
-  data <- data %>% filter(str_detect(education, "ISCED-11"), #Only one education scale
-                          sex %in% c("Male", "Female"), #Only male/female rates
-                           !is.na(rate), #No NA´s for labor force particpation rate
-                          )
-  data
-}
-
-
-
-#Prepare intermediate data for first analysis - five countries in year 2024
-prepare_lfpr_total_2024_comp <- function(data) {
-  relevant_countries <- c(
-    "Tanzania, United Republic of" ,
-    "Germany",
-    "United States of America",
-    "Iran (Islamic Republic of)",
-    "Australia"
-  ) #Select relevant countries
-
-  data <- data %>% filter(country %in% relevant_countries, #Only selected countries
-                          str_detect(education, "Total"), #No education levels considered
-                          year == 2024 #Only data for 2024
-  ) %>%
-    mutate(country = recode(country,
-                            "Tanzania, United Republic of" = "Tanzania" ,
-                            "Germany" = "Germany",
-                            "United States of America" = "USA",
-                            "Iran (Islamic Republic of)" = "Iran",
-                            "Australia" = "Australia"))
-  data
-}
-
-
-
-#Function to prepare intermediate data for second analysis - Germany from 2010-2024
-prepare_lfpr_GER_2010_to_2024 <- function(data) {
-  data <- data%>% filter(country == "Germany", #Only Germany
-                         str_detect(education, "Total"), #No education levels considered
-                         year >= 2010 #From year 2010 onwards
+    sex = sex.label,
+    rate = obs_value
+  )
+  data <- data %>% filter(
+    str_detect(education, "ISCED-11"),
+    sex %in% c("Male", "Female"),
+    !is.na(rate)
   )
   data
 }
 
 
+#' Prepare 2024 totals for selected countries
+#'
+#' Filters the prepared labour force participation data to five countries, keeps
+#' total education observations only, and renames countries for presentation.
+#'
+#' @param data A data frame created by \code{prepare_lfpr_data()}.
+#' @return A data frame with one row per country-sex observation for 2024.
+prepare_lfpr_total_2024_comp <- function(data) {
+  assert_data_frame(data)
 
-#Function to prepare intermediate data for third analysis - LFPR by education level
+  relevant_countries <- c(
+    "Tanzania, United Republic of",
+    "Germany",
+    "United States of America",
+    "Iran (Islamic Republic of)",
+    "Australia"
+  )
+
+  data <- data %>%
+    filter(
+      country %in% relevant_countries,
+      str_detect(education, "Total"),
+      year == 2024
+    ) %>%
+    mutate(country = recode(country,
+      "Tanzania, United Republic of" = "Tanzania",
+      "Germany" = "Germany",
+      "United States of America" = "USA",
+      "Iran (Islamic Republic of)" = "Iran",
+      "Australia" = "Australia"
+    ))
+  data
+}
+
+
+#' Prepare Germany time series for total participation rates
+#'
+#' Filters the prepared labour force participation data to Germany, total
+#' education observations, and the period from 2010 onward.
+#'
+#' @param data A data frame created by \code{prepare_lfpr_data()}.
+#' @return A data frame with Germany observations by year and sex.
+prepare_lfpr_ger_2010_to_2024 <- function(data) {
+  assert_data_frame(data)
+
+  data <- data %>% filter(
+    country == "Germany",
+    str_detect(education, "Total"),
+    year >= 2010
+  )
+  data
+}
+
+
+#' Prepare 2024 participation rates by education level
+#'
+#' Filters the prepared labour force participation data to Germany and Iran in
+#' 2024, removes broad or residual education categories, and standardises the
+#' education labels.
+#'
+#' @param data A data frame created by \code{prepare_lfpr_data()}.
+#' @return A data frame with country-, sex-, and education-specific rates.
 prepare_lfpr_2024_by_education <- function(data) {
-  data <- data %>% filter(year == 2024, #Only year 2024
-                          when_any(country == "Germany", #Only Germany and Iran
-                                   country == "Iran (Islamic Republic of)"),
-                          !str_detect(education, #Drop certain education levels
-                                      "Total|No schooling|Early childhood|Post-secondary|Not elsewhere")) %>%
-    mutate(country = recode(country, #Rename countries
-                            "Germany" = "Germany",
-                            "Iran (Islamic Republic of)" = "Iran")) %>%
+  assert_data_frame(data)
+
+  data <- data %>%
+    filter(
+      year == 2024, # Only year 2024
+      when_any(
+        country == "Germany",
+        country == "Iran (Islamic Republic of)"
+      ),
+      !str_detect(
+        education,
+        "Total|No schooling|Early childhood|Post-secondary|Not elsewhere"
+      )
+    ) %>%
+    mutate(country = recode(country,
+      "Germany" = "Germany",
+      "Iran (Islamic Republic of)" = "Iran"
+    )) %>%
     mutate(
       education = str_remove(education, "^Education \\(ISCED-11\\):"),
       education = str_remove(education, "^\\s*\\d+\\.\\s*"),
@@ -96,9 +145,18 @@ prepare_lfpr_2024_by_education <- function(data) {
   data
 }
 
-#Function to group education levels into four categories and calculate adjusted lfpr
+#' Group education levels and recalculate participation rates
+#'
+#' Collapses detailed tertiary categories into one combined category and averages
+#' labour force participation rates within each country-sex-education group.
+#'
+#' @param data A data frame created by \code{prepare_lfpr_2024_by_education()}.
+#' @return A data frame with regrouped education categories and averaged rates.
 group_educ_and_recalculate_rates <- function(data) {
-  data <- data %>% mutate(education_new = case_when( #Regroup education levels
+  assert_data_frame(data)
+
+  data <- data %>%
+    mutate(education_new = case_when(
       str_detect(as.character(education), "equivalent|Short-cycle") ~ "Tertiary education",
       TRUE ~ education
     )) %>%
@@ -112,18 +170,30 @@ group_educ_and_recalculate_rates <- function(data) {
       )
     )) %>%
     group_by(country, sex, education_new) %>%
-    summarise(rate = mean(rate, na.rm = TRUE),
-              .groups = "drop") #Calculate aggregated lfpr for new education levels by country and sex
+    summarise(
+      rate = mean(rate, na.rm = TRUE),
+      .groups = "drop"
+    )
 
   data
 }
 
 
-
-#Function to prepare intermediate data for third analysis - LFPR for tertiary education
+#' Prepare detailed tertiary education observations
+#'
+#' Filters the prepared education-specific labour force participation data to
+#' tertiary education categories only.
+#'
+#' @param data A data frame created by \code{prepare_lfpr_2024_by_education()}.
+#' @return A data frame with tertiary education observations only.
 tertiary_educ_detailed <- function(data) {
-  data <- data %>% filter(str_detect(as.character(education),  #Filter for tertiary education
-                                     "Short-cycle|equivalent")) %>%
+  assert_data_frame(data)
+
+  data <- data %>%
+    filter(str_detect(
+      as.character(education),
+      "Short-cycle|equivalent"
+    )) %>%
     mutate(education = factor(
       education,
       levels = c(
@@ -136,7 +206,17 @@ tertiary_educ_detailed <- function(data) {
   data
 }
 
+#' Plot selected-country participation rates
+#'
+#' Creates a grouped bar chart for total labour force participation rates in the
+#' selected countries for 2024.
+#'
+#' @param lf_total_2024_comparison A data frame created by
+#'   \code{prepare_lfpr_total_2024_comp()}.
+#' @return A \code{ggplot} object.
 plot_lfpr_selected_countries <- function(lf_total_2024_comparison) {
+  assert_data_frame(lf_total_2024_comparison)
+
   bar_width <- 0.7
   country_levels <- unique(lf_total_2024_comparison$country)
 
@@ -192,8 +272,18 @@ plot_lfpr_selected_countries <- function(lf_total_2024_comparison) {
     )
 }
 
-plot_lfpr_germany_time <- function(lf_GER_2010_to_2024) {
-  lf_GER_2010_to_2024 %>%
+#' Plot Germany labour force participation over time
+#'
+#' Creates a time series plot of Germany's total labour force participation rate
+#' by sex from 2010 onward.
+#'
+#' @param lf_ger_2010_to_2024 A data frame created by
+#'   \code{prepare_lfpr_ger_2010_to_2024()}.
+#' @return A \code{ggplot} object.
+plot_lfpr_germany_time <- function(lf_ger_2010_to_2024) {
+  assert_data_frame(lf_ger_2010_to_2024)
+
+  lf_ger_2010_to_2024 %>%
     ggplot(aes(x = year, y = rate, color = sex)) +
     geom_line() +
     geom_point() +
@@ -210,7 +300,19 @@ plot_lfpr_germany_time <- function(lf_GER_2010_to_2024) {
     scale_y_continuous(limits = c(0, 70), breaks = seq(0, 70, 10))
 }
 
+#' Plot participation rates by grouped education level
+#'
+#' Creates a faceted bar chart of labour force participation rates by sex across
+#' grouped education levels for one country.
+#'
+#' @param lf_2024_educ_grouped A data frame created by
+#'   \code{group_educ_and_recalculate_rates()}.
+#' @param country_name The country to plot.
+#' @return A \code{ggplot} object.
 plot_lfpr_by_education <- function(lf_2024_educ_grouped, country_name) {
+  assert_data_frame(lf_2024_educ_grouped)
+  assert_string(country_name)
+
   lf_2024_educ_grouped %>%
     filter(country == country_name) %>%
     ggplot(aes(x = country, y = rate, fill = sex)) +
@@ -230,10 +332,21 @@ plot_lfpr_by_education <- function(lf_2024_educ_grouped, country_name) {
     ) +
     scale_fill_sex() +
     theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
-    facet_wrap(~ education_new)
+    facet_wrap(~education_new)
 }
 
+#' Plot participation rates across tertiary education levels
+#'
+#' Creates a faceted bar chart of labour force participation rates by sex across
+#' detailed tertiary education categories for one country.
+#'
+#' @param lf_2024_tert_educ A data frame created by \code{tertiary_educ_detailed()}.
+#' @param country_name The country to plot.
+#' @return A \code{ggplot} object.
 plot_lfpr_tertiary <- function(lf_2024_tert_educ, country_name) {
+  assert_data_frame(lf_2024_tert_educ)
+  assert_string(country_name)
+
   lf_2024_tert_educ %>%
     filter(country == country_name) %>%
     ggplot(aes(x = country, y = rate, fill = sex)) +
@@ -253,5 +366,5 @@ plot_lfpr_tertiary <- function(lf_2024_tert_educ, country_name) {
     ) +
     scale_fill_sex() +
     theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
-    facet_wrap(~ education)
+    facet_wrap(~education)
 }

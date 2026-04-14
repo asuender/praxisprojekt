@@ -31,13 +31,8 @@ config.dataset.urls <- list(
   ),
   list(
     url = "https://rplumber.ilo.org/data/indicator/?id=EIP_RCAR_SEX_RT_A&lang=en&type=label&format=.csv.gz&channel=ilostat",
-    filename = "care_responsbility_share.csv.gz"
+    filename = "care_responsibility_share.csv.gz"
   ),
-  list(
-    url      = "https://ourworldindata.org/grapher/gender-inequality-index-from-the-human-development-report.csv?v=1&csvType=full&useColumnShortNames=true",
-    filename = "owid_gii.csv"
-  ),
-
   # Labor force participation
   list(
     url = "https://rplumber.ilo.org/data/indicator/?id=EAP_DWAP_SEX_AGE_RT_A&lang=en&type=label&format=.csv.gz&channel=ilostat",
@@ -50,7 +45,7 @@ config.dataset.urls <- list(
     filename = "ilo_labour_force_participation_and_education.csv.gz"
   ),
 
-  # World poppulation OWID
+  # World population OWID
   list(
     url = "https://ourworldindata.org/grapher/population.csv?v=1&csvType=full&useColumnShortNames=true",
     filename = "owid_pop.csv"
@@ -125,7 +120,8 @@ config.palette.presentation <- list(
   neutral = "#e8e0d5",
   grid = "#b8b8b8",
   ink = "#3f3f3f",
-  na = "#d8d8d8"
+  na = "#d8d8d8",
+  economic = "#2E7D32"
 )
 
 config.palette.sex <- c(
@@ -142,7 +138,7 @@ config.labels.sex <- c(
   "male" = "Male"
 )
 
-config.palette.care_highlight <- c(
+config.palette.care.highlight <- c(
   "High care gap (top 10)" = "#6B5B95",
   "Low care gap (bottom 10)" = "#B8930A",
   "Other" = "#666666"
@@ -157,11 +153,11 @@ scale_color_sex <- function(name = "Sex", ...) {
 }
 
 scale_fill_presentation_sequential <- function(
-    name = waiver(),
-    low = config.palette.presentation$neutral,
-    high = config.palette.presentation$female,
-    na.value = config.palette.presentation$na,
-    ...
+  name = waiver(),
+  low = config.palette.presentation$neutral,
+  high = config.palette.presentation$female,
+  na.value = config.palette.presentation$na,
+  ...
 ) {
   scale_fill_gradient(
     low = low,
@@ -173,13 +169,13 @@ scale_fill_presentation_sequential <- function(
 }
 
 scale_fill_presentation_diverging <- function(
-    name = waiver(),
-    low,
-    high,
-    mid = config.palette.presentation$neutral,
-    midpoint = 0,
-    na.value = config.palette.presentation$na,
-    ...
+  name = waiver(),
+  low,
+  high,
+  mid = config.palette.presentation$neutral,
+  midpoint = 0,
+  na.value = config.palette.presentation$na,
+  ...
 ) {
   scale_fill_gradient2(
     low = low,
@@ -193,12 +189,12 @@ scale_fill_presentation_diverging <- function(
 }
 
 scale_color_presentation_diverging <- function(
-    name = waiver(),
-    low,
-    high,
-    mid = config.palette.presentation$neutral,
-    midpoint = 0,
-    ...
+  name = waiver(),
+  low,
+  high,
+  mid = config.palette.presentation$neutral,
+  midpoint = 0,
+  ...
 ) {
   scale_color_gradient2(
     low = low,
@@ -211,12 +207,12 @@ scale_color_presentation_diverging <- function(
 }
 
 scale_fill_presentation_binary <- function(
-    name = waiver(),
-    negative_label,
-    positive_label,
-    negative = config.palette.presentation$male,
-    positive = config.palette.presentation$female,
-    ...
+  name = waiver(),
+  negative_label,
+  positive_label,
+  negative = config.palette.presentation$male,
+  positive = config.palette.presentation$female,
+  ...
 ) {
   scale_fill_manual(
     values = c("FALSE" = negative, "TRUE" = positive),
@@ -227,12 +223,12 @@ scale_fill_presentation_binary <- function(
 }
 
 scale_color_presentation_binary <- function(
-    name = waiver(),
-    negative_label,
-    positive_label,
-    negative = config.palette.presentation$male,
-    positive = config.palette.presentation$female,
-    ...
+  name = waiver(),
+  negative_label,
+  positive_label,
+  negative = config.palette.presentation$male,
+  positive = config.palette.presentation$female,
+  ...
 ) {
   scale_color_manual(
     values = c("FALSE" = negative, "TRUE" = positive),
@@ -247,7 +243,7 @@ theme_set(
     theme(
       plot.title = element_text(hjust = 0.5, face = "bold", color = config.palette.presentation$ink),
       plot.subtitle = element_text(hjust = 0.5),
-      plot.caption = element_text(size = 9, color = "grey30", hjust = 1, margin = margin(t = 10)),
+      plot.caption = element_text(size = 11, color = "grey30", hjust = 1, margin = margin(t = 10)),
       plot.caption.position = "plot",
       axis.title.x = element_text(margin = margin(t = 10)),
       axis.title.y = element_text(margin = margin(r = 10)),
@@ -255,8 +251,14 @@ theme_set(
       panel.grid.major = element_line(color = config.palette.presentation$grid, linewidth = 0.3),
       panel.border = element_rect(color = config.palette.presentation$ink, fill = NA, linewidth = 0.8),
       strip.background = element_blank(),
-      strip.text = element_text(color = config.palette.presentation$ink, face = "bold"),
+      strip.text = element_text(color = config.palette.presentation$ink, face = "bold", size = 12),
       legend.background = element_rect(fill = "white", color = NA),
-      legend.key = element_rect(fill = "white", color = NA)
+      legend.key = element_rect(fill = "white", color = NA),
+      legend.text = element_text(size = 14),
+      axis.text.x = element_text(size = 12),
+      axis.text.y = element_text(size = 12)
     )
 )
+
+# Set default geom aesthetic values
+update_geom_defaults("line", list(linewidth = 1))

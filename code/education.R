@@ -10,9 +10,9 @@ library(countrycode)
 #' @return A \code{data.table} with columns: country, countryCode, year, value
 #'   (the GII score).
 load_owid_gii_data <- function() {
-  DT <- fread(here("data", "raw", "owid_gender_inequality_index.csv"))
-  setnames(DT, c("entity", "code", "gii"), c("country", "countryCode", "value"))
-  DT
+  dt <- fread(here("data", "raw", "owid_gender_inequality_index.csv"))
+  setnames(dt, c("entity", "code", "gii"), c("country", "country_code", "value"))
+  dt
 }
 
 #' Prepare raw UIS indicator data from ZIP archives
@@ -27,17 +27,19 @@ load_owid_gii_data <- function() {
 #'   names), \code{sex} factor, \code{countryCode}, \code{country}, and all
 #'   original CSV columns.
 prepare_uis_data <- function(files) {
-  DT <- rbindlist(lapply(files, function(f) {
+  assert_list(files, names = "named")
+
+  dt <- rbindlist(lapply(files, function(f) {
     fread(cmd = paste("unzip -p", here("data", "raw", f), "'*/data.csv'"))
   }), idcol = "indicator")
 
-  DT[, sex := sub(".*_", "", indicator)]
-  DT[, sex := factor(sex, levels = c("female", "male"), labels = c("Female", "Male"))]
+  dt[, sex := sub(".*_", "", indicator)]
+  dt[, sex := factor(sex, levels = c("female", "male"), labels = c("Female", "Male"))]
 
-  setnames(DT, "geoUnit", "countryCode")
-  DT[, country := countrycode(countryCode, origin = "iso3c", destination = "country.name")]
+  setnames(dt, "geoUnit", "country_code")
+  dt[, country := countrycode(country_code, origin = "iso3c", destination = "country.name")]
 
-  DT
+  dt
 }
 
 #' Load UIS completion rates by education level and sex
@@ -47,7 +49,7 @@ prepare_uis_data <- function(files) {
 #' level from the indicator name, and keeps only country-year-level
 #' combinations where both sexes are present.
 #'
-#' @return A \code{data.table} with columns: educationLevel, countryCode,
+#' @return A \code{data.table} with columns: education_level, country_code,
 #'   country, sex, year, value (completion rate in percent).
 load_uis_completion_rates <- function() {
   files <- list(
@@ -59,17 +61,17 @@ load_uis_completion_rates <- function() {
     upper_sec_male   = "uis_completion_rate_upper_secondary_male.zip"
   )
 
-  DT <- prepare_uis_data(files)
+  dt <- prepare_uis_data(files)
 
-  DT[, educationLevel := sub("_[^_]+$", "", indicator)]
-  DT[, educationLevel := factor(fcase(
-    educationLevel == "primary",   "Primary",
-    educationLevel == "lower_sec", "Lower secondary",
-    educationLevel == "upper_sec", "Upper secondary"
+  dt[, education_level := sub("_[^_]+$", "", indicator)]
+  dt[, education_level := factor(fcase(
+    education_level == "primary",   "Primary",
+    education_level == "lower_sec", "Lower secondary",
+    education_level == "upper_sec", "Upper secondary"
   ), levels = c("Primary", "Lower secondary", "Upper secondary"))]
-  DT <- DT[, if (.N == 2) .SD, by = .(country, year, educationLevel)]
+  dt <- dt[, if (.N == 2) .SD, by = .(country, year, education_level)]
 
-  DT[, .(educationLevel, countryCode, country, sex, year, value)]
+  dt[, .(education_level, country_code, country, sex, year, value)]
 }
 
 #' Load OWID gross enrollment data and compute the Gender Parity Index
@@ -81,7 +83,7 @@ load_uis_completion_rates <- function() {
 #' during their own data cleaning process, which makes it necessary to handle
 #' that separately (hence we cannot use the \code{\link{prepare_uis_data}} function).
 #'
-#' @return A \code{data.table} with columns: educationLevel, countryCode,
+#' @return A \code{data.table} with columns: education_level, country_code,
 #'   country, year, value (GPI ratio).
 load_owid_gpi_data <- function() {
   files <- list(
@@ -91,46 +93,90 @@ load_owid_gpi_data <- function() {
     "Tertiary"        = "owid_gross_enrolment_tertiary.csv"
   )
 
-  DT <- rbindlist(lapply(names(files), function(level) {
+  dt <- rbindlist(lapply(names(files), function(level) {
     dt <- fread(here("data", "raw", files[[level]]))
     cols <- names(dt)
     col_female <- grep("fe", cols, ignore.case = TRUE, value = TRUE)
     col_male <- setdiff(cols[4:5], col_female)
 
-    setnames(dt, c(cols[1:2], col_female, col_male), c("country", "countryCode", "female", "male"))
+    setnames(dt, c(cols[1:2], col_female, col_male), c("country", "country_code", "female", "male"))
     dt[, level := level]
     dt
   }), fill = TRUE)
 
-  DT[, value := female / male]
-  DT[, educationLevel := factor(level, levels = c(
+  dt[, value := female / male]
+  dt[, education_level := factor(level, levels = c(
     "Pre-primary", "Primary", "Lower secondary", "Upper secondary", "Tertiary"
   ))]
 
-  DT[, .(educationLevel, countryCode, country, year, value)]
+  dt[, .(education_level, country_code, country, year, value)]
 }
 
+#' Prepare world map data for the gender inequality index
+#'
+#' Filters the gender inequality index data to a given year and joins it to a
+#' world geometry object by ISO-3 country code.
+#'
+#' @param gii A \code{data.table} with GII values.
+#' @param world An \code{sf} object with an \code{iso_a3} column.
+#' @param year The year to keep.
+#' @return An \code{sf} object with joined GII values.
 prepare_gii_world_map_data <- function(gii, world, year = 2023) {
-  gii_latest <- gii[year == year]
-  merge(world, gii_latest, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
+  assert_data_table(gii)
+  assert_class(world, "sf")
+  assert_count(year)
+
+  target_year <- year
+  gii_latest <- gii[year == target_year]
+  merge(world, gii_latest, by.x = "iso_a3", by.y = "country_code", all.x = TRUE)
 }
 
+#' Prepare global completion averages for the latest year
+#'
+#' Keeps countries with complete female and male observations across all three
+#' education levels in the selected year and averages completion rates by sex and
+#' level.
+#'
+#' @param completion A \code{data.table} with completion rate observations.
+#' @param year The year to summarise.
+#' @return A \code{data.table} with average completion rates by education level
+#'   and sex.
 prepare_completion_global_latest <- function(completion, year = 2021) {
-  balanced_countries <- completion[year == year,
-    if (uniqueN(educationLevel) == 3 && uniqueN(sex) == 2) .SD,
+  assert_data_table(completion)
+  assert_count(year)
+
+  target_year <- year
+
+  balanced_countries <- completion[year == target_year,
+    if (uniqueN(education_level) == 3 && uniqueN(sex) == 2) .SD,
     by = country
   ]$country |> unique()
 
-  completion[year == year & country %in% balanced_countries,
-    .(value = mean(value)), by = .(educationLevel, sex)
+  completion[year == target_year & country %in% balanced_countries,
+    .(value = mean(value)),
+    by = .(education_level, sex)
   ]
 }
 
+#' Prepare completion trends for selected countries
+#'
+#' Averages completion rates across education levels for selected countries over
+#' a given year range.
+#'
+#' @param completion A \code{data.table} with completion rate observations.
+#' @param countries A character vector of country names to include.
+#' @param year_range A numeric vector of length two giving the start and end
+#'   year.
+#' @return A \code{data.table} with country-year-sex averages.
 prepare_completion_countries_time <- function(
-    completion,
-    countries,
-    year_range = c(2005, 2020)
+  completion,
+  countries,
+  year_range = c(2005, 2020)
 ) {
+  assert_data_table(completion)
+  assert_character(countries, any.missing = FALSE)
+  assert_integerish(year_range, lower = 0, len = 2, any.missing = FALSE)
+
   completion_countries_time <- completion[
     between(year, year_range[1], year_range[2]) & country %in% countries,
     .(value = mean(value)),
@@ -141,7 +187,16 @@ prepare_completion_countries_time <- function(
   completion_countries_time
 }
 
+#' Plot a global map of the gender inequality index
+#'
+#' Visualises country-level gender inequality index values on a world map.
+#'
+#' @param gii_world An \code{sf} object produced by
+#'   \code{prepare_gii_world_map_data()}.
+#' @return A \code{ggplot} object.
 plot_gii_map <- function(gii_world) {
+  assert_class(gii_world, "sf")
+
   ggplot(gii_world) +
     geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
     scale_fill_presentation_sequential(
@@ -154,13 +209,26 @@ plot_gii_map <- function(gii_world) {
       subtitle = "Global coverage | 2023",
       caption = "Source: UNDP via Our World in Data.\nHigher values indicate greater inequality towards women."
     ) +
-    theme(axis.text = element_blank(), axis.ticks = element_blank())
+    theme(legend.text = element_text(size = 12), axis.text = element_blank(), axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())
 }
 
+#' Plot a global map of the gender parity index
+#'
+#' Filters the gross enrolment-based gender parity index to the latest available
+#' year in 2020-2021 for one education level and plots it on a world map.
+#'
+#' @param gpi A \code{data.table} with GPI values.
+#' @param world An \code{sf} object with an \code{iso_a3} column.
+#' @param level The education level to plot.
+#' @return A \code{ggplot} object.
 plot_gpi_map <- function(gpi, world, level) {
-  gpi_filtered <- gpi[year %in% c(2020, 2021) & educationLevel == level]
-  gpi_filtered <- gpi_filtered[, .SD[which.max(year)], by = .(countryCode, country)]
-  world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "countryCode", all.x = TRUE)
+  assert_data_table(gpi)
+  assert_class(world, "sf")
+  assert_string(level)
+
+  gpi_filtered <- gpi[year %in% c(2020, 2021) & education_level == level]
+  gpi_filtered <- gpi_filtered[, .SD[which.max(year)], by = .(country_code, country)]
+  world_merged <- merge(world, gpi_filtered, by.x = "iso_a3", by.y = "country_code", all.x = TRUE)
 
   ggplot(world_merged) +
     geom_sf(aes(fill = value), color = "grey30", linewidth = 0.1) +
@@ -178,12 +246,26 @@ plot_gpi_map <- function(gpi, world, level) {
     ) +
     theme(
       legend.title = element_text(vjust = 0.75),
-      axis.text = element_blank(),
-      axis.ticks = element_blank()
+      legend.text = element_text(size = 12),
+      axis.ticks = element_blank(),
+      axis.text.x = element_blank(),
+      axis.text.y = element_blank()
     )
 }
 
+#' Plot one education-level GPI map panel
+#'
+#' Wraps \code{plot_gpi_map()} for use in the combined multi-panel layout.
+#'
+#' @param gpi A \code{data.table} with GPI values.
+#' @param world An \code{sf} object with an \code{iso_a3} column.
+#' @param level The education level to plot.
+#' @return A \code{ggplot} object.
 plot_gpi_subplot <- function(gpi, world, level) {
+  assert_data_table(gpi)
+  assert_class(world, "sf")
+  assert_string(level)
+
   plot_gpi_map(gpi, world, level) +
     labs(title = level, subtitle = NULL) +
     theme(
@@ -192,9 +274,20 @@ plot_gpi_subplot <- function(gpi, world, level) {
     )
 }
 
+#' Plot combined GPI maps across education levels
+#'
+#' Arranges four education-specific GPI maps into a shared layout with a common
+#' legend and annotation.
+#'
+#' @param gpi A \code{data.table} with GPI values.
+#' @param world An \code{sf} object with an \code{iso_a3} column.
+#' @return A patchwork plot object.
 plot_gpi_combined <- function(gpi, world) {
+  assert_data_table(gpi)
+  assert_class(world, "sf")
+
   (plot_gpi_subplot(gpi, world, "Primary") +
-      plot_gpi_subplot(gpi, world, "Lower secondary")) /
+    plot_gpi_subplot(gpi, world, "Lower secondary")) /
     (plot_gpi_subplot(gpi, world, "Upper secondary") +
       plot_gpi_subplot(gpi, world, "Tertiary")) +
     plot_layout(guides = "collect") +
@@ -212,8 +305,18 @@ plot_gpi_combined <- function(gpi, world) {
     )
 }
 
+#' Plot average completion rates by education level and sex
+#'
+#' Creates a grouped bar chart from the output of
+#' \code{prepare_completion_global_latest()}.
+#'
+#' @param completion_global_latest A \code{data.table} with average completion
+#'   rates by education level and sex.
+#' @return A \code{ggplot} object.
 plot_completion_global <- function(completion_global_latest) {
-  ggplot(completion_global_latest, aes(x = educationLevel, y = value, fill = sex)) +
+  assert_data_table(completion_global_latest)
+
+  ggplot(completion_global_latest, aes(x = education_level, y = value, fill = sex)) +
     geom_bar(
       position = "dodge",
       stat = "identity",
@@ -232,7 +335,17 @@ plot_completion_global <- function(completion_global_latest) {
     )
 }
 
+#' Plot completion rate trends for selected countries
+#'
+#' Creates faceted time series of completion rates averaged across education
+#' levels.
+#'
+#' @param completion_countries_time A \code{data.table} created by
+#'   \code{prepare_completion_countries_time()}.
+#' @return A \code{ggplot} object.
 plot_completion_countries_time <- function(completion_countries_time) {
+  assert_data_table(completion_countries_time)
+
   ggplot(completion_countries_time, aes(x = year, y = value, color = sex)) +
     geom_line() +
     geom_point() +

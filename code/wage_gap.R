@@ -1,19 +1,36 @@
-library(ggplot2)
-library(data.table)
 library(here)
+library(checkmate)
+library(data.table)
 library(countrycode)
+library(ggplot2)
 
+#' Load OWID gender wage gap data
+#'
+#' Reads the raw Our World in Data wage gap dataset from \code{data/raw/}.
+#'
+#' @return A \code{data.table} with country-year wage gap observations.
 load_gender_wage_gap_data <- function() {
   fread(here("data", "raw", "owid_gender_wage_gap.csv"))
 }
 
 
-prepare_wage_gap_regional_data <- function(owid_data, min_years = 1) {
-  dt <- as.data.table(owid_data)[, .(
+#' Prepare regional wage gap summaries
+#'
+#' Collapses the OWID wage gap series to country medians and then computes
+#' regional medians and interquartile ranges.
+#'
+#' @param owid_data A \code{data.table} containing the raw OWID
+#'   wage gap data.
+#' @return A \code{data.table} with one row per region and summary statistics
+#'   for the wage gap.
+prepare_wage_gap_regional_data <- function(owid_data) {
+  assert_data_table(owid_data)
+
+  dt <- owid_data[, .(
     country = entity,
     country_code = code,
-    year    = year,
-    gap     = gender_wage_gap_by_occupation__classif1_occupation__skill_level__total
+    year = year,
+    gap = gender_wage_gap_by_occupation__classif1_occupation__skill_level__total
   )]
   dt <- dt[!is.na(gap) & year >= 2000 & year <= 2025]
 
@@ -40,7 +57,17 @@ prepare_wage_gap_regional_data <- function(owid_data, min_years = 1) {
 }
 
 
+#' Plot the regional wage gap distribution
+#'
+#' Visualises median regional wage gaps together with interquartile ranges based
+#' on country-level medians.
+#'
+#' @param owid_data A \code{data.table} containing the raw OWID
+#'   wage gap data.
+#' @return A \code{ggplot} object.
 plot_wage_gap_distribution <- function(owid_data) {
+  assert_data_table(owid_data)
+
   dt_region <- prepare_wage_gap_regional_data(owid_data)
 
   # Custom order: Asia, Africa, Oceania, Europe, Americas
@@ -54,8 +81,9 @@ plot_wage_gap_distribution <- function(owid_data) {
 
   # Add color column based on sign
   dt_region[, bar_color := ifelse(gap_med >= 0,
-                                   config.palette.presentation$male,
-                                   config.palette.presentation$female)]
+    config.palette.presentation$male,
+    config.palette.presentation$female
+  )]
 
   ggplot(dt_region, aes(x = region_label, y = gap_med)) +
     geom_col(
@@ -91,15 +119,24 @@ plot_wage_gap_distribution <- function(owid_data) {
       caption  = "Source: Our World in Data.",
     ) +
     theme(
-      axis.text.x        = element_text(angle = 35, hjust = 1, face = "bold", size = 9),
+      axis.text.x        = element_text(angle = 35, hjust = 1, face = "bold"),
       panel.grid.major.x = element_blank(),
       legend.position    = "none"
     )
 }
 
+#' Plot wage gap trends for selected countries
+#'
+#' Filters the OWID wage gap data to a fixed set of countries and shows their
+#' annual time series in small multiples.
+#'
+#' @param owid_data A \code{data.table} containing the raw OWID
+#'   wage gap data.
+#' @return A \code{ggplot} object.
 plot_wage_gap_facet <- function(owid_data) {
+  assert_data_table(owid_data)
 
-  dt <- as.data.table(owid_data)[, .(
+  dt <- owid_data[, .(
     country = entity,
     year    = year,
     gap     = gender_wage_gap_by_occupation__classif1_occupation__skill_level__total
@@ -109,61 +146,72 @@ plot_wage_gap_facet <- function(owid_data) {
   country_map <- c(
     "United States" = "United States",
     "United Kingdom" = "United Kingdom",
-    "Portugal"       = "Portugal",
-    "Mexico"         = "Mexico",
-    "Egypt"         = "Egypt",
-    "Colombia"       = "Colombia",
-    "South Korea"    = "South Korea",
-    "Philippines"    = "Philippines",
-    "South Africa"   = "South Africa"
+    "Portugal" = "Portugal",
+    "Mexico" = "Mexico",
+    "Egypt" = "Egypt",
+    "Colombia" = "Colombia",
+    "South Korea" = "South Korea",
+    "Philippines" = "Philippines",
+    "South Africa" = "South Africa"
   )
 
   dt <- dt[country %in% names(country_map)]
   dt[, country := factor(country, levels = unname(country_map))]
 
   ggplot(dt, aes(x = year, y = gap)) +
-    geom_line(color = unname(config.palette.sex["Female"]), linewidth = 1) +
-    geom_point(color = unname(config.palette.sex["Female"]), size = 1.5) +
+    geom_line(color = config.palette.presentation$economic) +
+    geom_point(size = 1.5, color = config.palette.presentation$economic) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey50", linewidth = 0.5) +
-    facet_wrap(~ country, ncol = 3) +
+    facet_wrap(~country, ncol = 3) +
     scale_x_continuous(breaks = seq(2000, 2024, by = 6)) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     labs(
       title    = "Gender wage gap over time",
       subtitle = "Selected countries | 2000-2025",
       x        = NULL,
-      y        = "Anual wage gap (%)",
+      y        = "Annual wage gap (%)",
       caption  = "Source: Our World in Data."
     ) +
     theme(
-      axis.text.x     = element_text(angle = 45, hjust = 1, size = 8),
+      axis.text.x     = element_text(angle = 45, hjust = 1),
       panel.spacing   = grid::unit(1, "lines")
     )
 }
 
+#' Plot the relationship between wage gap and GII
+#'
+#' Joins the most recent wage gap observations with the most recent gender
+#' inequality index values and visualises their cross-country association.
+#'
+#' @param dt_gii A \code{data.table} with gender inequality index
+#'   values.
+#' @param owid_data A \code{data.table} containing the raw OWID
+#'   wage gap data.
+#' @return A \code{ggplot} object.
 plot_wage_gap_gii_correlation <- function(dt_gii, owid_data) {
+  assert_data_table(dt_gii)
+  assert_data_table(owid_data)
+
   dt_gap <- as.data.table(owid_data)[
     !is.na(gender_wage_gap_by_occupation__classif1_occupation__skill_level__total) &
       year >= 2020 & year <= 2025
   ]
   setnames(dt_gap, "entity", "country")
-  dt_gap <- dt_gap[, .SD[which.max(year)], by = country
-  ][, .(country, gap = gender_wage_gap_by_occupation__classif1_occupation__skill_level__total)]
+  dt_gap <- dt_gap[, .SD[which.max(year)], by = country][, .(country, gap = gender_wage_gap_by_occupation__classif1_occupation__skill_level__total)]
 
   dt_gii <- dt_gii[
     !is.na(value) & year >= 2020 & year <= 2025
-  ][, .SD[which.max(year)], by = country
-  ][, .(country, gii = value)]
+  ][, .SD[which.max(year)], by = country][, .(country, gii = value)]
 
   merged <- merge(dt_gap, dt_gii, by = "country")
 
   sp_test <- cor.test(merged$gap, merged$gii, method = "spearman", exact = FALSE)
-  sp_rho  <- round(sp_test$estimate, 3)
+  sp_rho <- round(sp_test$estimate, 3)
 
   ggplot(merged, aes(x = gii, y = gap)) +
     geom_point(
       aes(fill = gap > 0),
-      size  = 2.5,
+      size = 2.5,
       alpha = 0.75,
       shape = 21,
       color = unname(config.palette.presentation$ink),
@@ -187,13 +235,13 @@ plot_wage_gap_gii_correlation <- function(dt_gii, owid_data) {
     scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     labs(
-      title    = "Gender wage gap vs gender inequality index",
+      title = "Gender wage gap vs gender inequality index",
       subtitle = paste0(
         "79 countries | Most recent year, 2020-2025 | Spearman rho = ",
         sp_rho
       ),
-      x       = "Gender inequality index",
-      y       = "Wage gap (%)",
+      x = "Gender inequality index",
+      y = "Wage gap (%)",
       caption = "Source: Our World in Data."
     ) +
     theme(
