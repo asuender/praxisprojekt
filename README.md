@@ -13,7 +13,7 @@ This project is part of the "Statistisches Praktikum" course at LMU Munich. We s
 
 ## Quick Start
 
-Let's keep it simple, stupid. To get started with this repository, follow the steps below:
+To get started with this repository, follow the steps below:
 
 ```r
 # 1. Restore R packages
