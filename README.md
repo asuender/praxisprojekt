@@ -25,6 +25,8 @@ source("source_all.R")
 # 3. Download datasets into data/raw/
 download_data()
 
+# Assuming you have the `Quarto` CLI installed,
+# otherwise, render within RStudio
 # 4. Render the presentation
 #    & executive summary
 quarto render presentation.qmd
