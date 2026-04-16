@@ -31,6 +31,8 @@ quarto render presentation.qmd
 quarto render report.qmd
 ```
 
+Note: to render `report.qmd`, you need to have a LaTeX distribution installed on your system. Alternatively, you may also use `quarto install tinytex` to install a bare minimal distribution just for R.
+
 ## Project Structure
 
 ```
